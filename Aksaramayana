@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aksara Ramayana - Karaton Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold-glow: #ffcc00;
+            --sepia-dark: #2b1a0a;
+            --border-gold: #b8860b;
+            --paper: #f0e6d2;
+            --glass-bg: rgba(20, 10, 5, 0.85);
+            --fire-red: #ff4500;
+            --fire-orange: #ff8c00;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'Lato', sans-serif;
+            background: #000; color: var(--paper);
+        }
+
+        h1, h2, .hp-label, #level-title, #continue-btn, #ui-start, .opt-btn, #ui-hint, .hp-values, #timer-text, #transition-text { 
+            font-family: 'Cinzel', serif; 
+            font-weight: 700; 
+        }
+
+        #game-container {
+            position: relative; width: 100vw; height: 100vh;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #screen-flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, var(--fire-orange), var(--fire-red), transparent);
+            opacity: 0; z-index: 1000; pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+
+        #battle-bg {
+            position: absolute; 
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://i.postimg.cc/GmydcVwL/Battle.png');
+            background-size: 140%; 
+            background-position: center bottom; 
+            z-index: 1;
+            transition: background-size 2s ease-out;
+        }
+
+        @media (max-width: 600px) {
+            #battle-bg { background-size: 350%; background-position: center 100%; }
+        }
+
+        #level-transition {
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); 
+            backdrop-filter: blur(4px);
+            z-index: 500;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        #level-transition.active { 
+            opacity: 1; 
+        }
+
+        #transition-content {
+            text-align: center;
+            border-top: 2px solid var(--gold-glow);
+            border-bottom: 2px solid var(--gold-glow);
+            padding: 40px 0;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, rgba(184, 134, 11, 0.2), transparent);
+            transform: scale(0.8);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #level-transition.active #transition-content {
+            transform: scale(1);
+        }
+
+        #transition-text {
+            color: var(--gold-glow);
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+            margin: 0;
+            letter-spacing: 5px;
+            text-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+        }
+
+        #battle-screen { 
+            display: none; width: 100%; height: 100%; 
+            position: relative; z-index: 2; flex-direction: column;
+        }
+        
+        .hud {
+            display: flex; justify-content: space-between; padding: 20px 25px;
+            width: 100%; box-sizing: border-box;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            z-index: 20;
+        }
+
+        .hp-container { position: relative; width: 38%; }
+        .hp-bar-bg { height: 16px; background: rgba(0,0,0,0.6); border: 1px solid var(--border-gold); margin-top: 5px; border-radius: 4px; overflow: hidden; position: relative; }
+        .hp-bar-fill { height: 100%; width: 100%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        #player-hp { background: linear-gradient(90deg, #b8860b, #ffcc00); }
+        #enemy-hp { background: linear-gradient(90deg, #800000, #ff0000); }
+        
+        .hp-values {
+            position: absolute; width: 100%; text-align: center; top: 0; left: 0;
+            font-size: 0.65rem; line-height: 16px; color: white; letter-spacing: 1px;
+            text-shadow: 1px 1px 2px black; pointer-events: none; z-index: 5;
+        }
+
+        .timer-wrapper {
+            position: absolute; top: 90px; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center; z-index: 25;
+        }
+        .timer-container { width: 100px; height: 4px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-bottom: 5px; }
+        #timer-fill { height: 100%; width: 100%; background: var(--gold-glow); }
+        #timer-text { font-size: 2.5rem; color: white; text-shadow: 0 0 10px rgba(0,0,0,1); }
+
+        .arena { 
+            position: absolute; 
+            bottom: 210px; 
+            left: 0; 
+            width: 100%; 
+            height: 38vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-end; 
+            gap: 2%; 
+            pointer-events: none; 
+            z-index: 10; 
+            padding: 0 5%; 
+            box-sizing: border-box;
+        }
+
+        #player-img, #enemy-img { 
+            height: auto; 
+            max-height: 100%; 
+            max-width: 48%; 
+            transition: transform 0.2s ease-out, opacity 0.3s;
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.9));
+        }
+
+        .explosion-fire {
+            position: absolute; width: 150px; height: 150px; z-index: 100;
+            pointer-events: none; display: flex; justify-content: center; align-items: center;
+        }
+        .fire-core {
+            position: absolute; width: 100%; height: 100%;
+            background: radial-gradient(circle, #fff 0%, #ffcc00 30%, #ff4500 60%, transparent 80%);
+            border-radius: 50%; animation: fireBlast 0.5s ease-out forwards;
+        }
+        @keyframes fireBlast {
+            0% { transform: scale(0.2); opacity: 1; filter: brightness(2); }
+            100% { transform: scale(4); opacity: 0; filter: blur(10px); }
+        }
+
+        .quiz-container {
+            position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
+            width: 88%; max-width: 550px; 
+            background: var(--glass-bg); backdrop-filter: blur(15px);
+            padding: 12px 18px; border: 1px solid rgba(184, 134, 11, 0.7); 
+            border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); z-index: 100;
+        }
+
+        #question { font-size: 0.95rem; text-align: center; margin-bottom: 12px; color: #fff; line-height: 1.3; text-shadow: 1px 1px 4px rgba(0,0,0,1); }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .opt-btn {
+            background: rgba(255,255,255,0.08); border: 1px solid var(--border-gold);
+            color: var(--paper); padding: 10px; cursor: pointer; border-radius: 6px;
+            font-size: 0.8rem; transition: all 0.2s; letter-spacing: 0.5px;
+            outline: none;
+        }
+        .opt-btn:hover:not(:disabled) { background: var(--gold-glow) !important; color: #000 !important; }
+
+        #menu-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('https://i.postimg.cc/WzYqPCRk/Menu.png');
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 200; padding: 20px; box-sizing: border-box;
+        }
+
+        #gameover-screen, #victory-screen {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            backdrop-filter: blur(6px);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+            animation: fadeIn 0.5s ease-out forwards;
+            text-align: center;
+        }
+
+        #gameover-screen { background: rgba(40, 0, 0, 0.85); }
+        #victory-screen { background: rgba(10, 5, 2, 0.9); }
+
+        .shake { animation: shakeEffect 0.4s ease-in-out; }
+        @keyframes shakeEffect {
+            0%, 100% { transform: translate(0,0); }
+            25% { transform: translate(-12px, 8px); }
+            50% { transform: translate(12px, -8px); }
+            75% { transform: translate(-12px, -8px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+
+        .floating-text {
+            position: absolute; font-family: 'Cinzel', serif; font-weight: bold;
+            font-size: 1.8rem; pointer-events: none; z-index: 120;
+            animation: floatUp 1s ease-out forwards; text-shadow: 2px 2px 5px #000;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-120px); opacity: 0; }
+        }
+
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: var(--gold-glow);
+        }
+
+        @keyframes screenFireFlash {
+            0% { opacity: 0; } 50% { opacity: 0.6; } 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading-overlay">
+    <div style="font-family: 'Cinzel'; font-size: 2rem; margin-bottom: 10px;">AKSARAMAYANA</div>
+    <div id="loading-status" style="font-size: 0.8rem; letter-spacing: 4px;">MEMUAT TAKDIR...</div>
+</div>
+
+<!-- Audio Assets -->
+<audio id="audio-menu" loop preload="auto">
+    <source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/menu.mp3" type="audio/mpeg">
+</audio>
+<audio id="audio-battle" loop preload="auto">
+    <source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/97db58b5d604c46fce22d4622a35afe4c8764aa1/Epic%20Forge%20of%20the%20Gamelan.mp3" type="audio/mpeg">
+</audio>
+<audio id="sfx-confirm" preload="auto">
+    <source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/confirm.wav" type="audio/wav">
+</audio>
+<audio id="sfx-back" preload="auto">
+    <source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/back.wav" type="audio/wav">
+</audio>
+<audio id="sfx-bab" preload="auto">
+    <source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/bab1.wav" type="audio/wav">
+</audio>
+<audio id="sfx-hit-player" preload="auto">
+    <source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/arrow.wav" type="audio/wav">
+</audio>
+<audio id="sfx-hit-enemy" preload="auto">
+    <source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/hit.wav" type="audio/wav">
+</audio>
+
+<div id="game-container">
+    <div id="screen-flash"></div>
+    <div id="battle-bg"></div>
+    
+    <div id="level-transition">
+        <div id="transition-content">
+            <h2 id="transition-text">BAB 1</h2>
+        </div>
+    </div>
+
+    <div id="menu-screen">
+        <h1 style="font-size: clamp(2rem, 8vw, 5rem); color: var(--gold-glow); margin: 0; text-shadow: 0 0 30px rgba(0,0,0,1); text-align: center;">AKSARAMAYANA</h1>
+        <p style="letter-spacing: 6px; margin-bottom: 30px; font-family: 'Cinzel'; font-size: 0.9rem; opacity: 0.8;">KARATON LEGACY</p>
+        <button class="opt-btn" onclick="startGame()" id="ui-start">MULAI PERJALANAN</button>
+        <p id="cloud-status" style="font-size: 0.6rem; margin-top: 15px; opacity: 0.5;">Cloud Sync: Menghubungkan...</p>
+    </div>
+
+    <div id="battle-screen">
+        <div class="hud">
+            <div class="hp-container">
+                <div class="hp-label" style="font-size: 0.8rem; color: var(--gold-glow);">SRI RAMA</div>
+                <div class="hp-bar-bg">
+                    <div id="player-hp" class="hp-bar-fill"></div>
+                    <div id="player-hp-text" class="hp-values">100.000 / 100.000</div>
+                </div>
+            </div>
+            <div class="hp-container" style="text-align: right;">
+                <div id="enemy-name" class="hp-label" style="font-size: 0.8rem; color: #ff4d4d;">RAHWANA</div>
+                <div class="hp-bar-bg">
+                    <div id="enemy-hp" class="hp-bar-fill"></div>
+                    <div id="enemy-hp-text" class="hp-values">300.000 / 300.000</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timer-wrapper">
+            <div class="timer-container"><div id="timer-fill"></div></div>
+            <div id="timer-text">10</div>
+        </div>
+
+        <div class="arena" id="arena">
+            <img src="" id="player-img" alt="Sri Rama">
+            <img src="" id="enemy-img" alt="Musuh">
+        </div>
+
+        <div class="quiz-container" id="quiz-ui">
+            <div id="rationale-box" style="display: none; text-align: center;">
+                <div id="rationale-text" style="line-height: 1.4; font-size: 0.85rem; margin-bottom: 10px; color: #fff;"></div>
+                <button id="continue-btn" class="opt-btn" style="background: var(--gold-glow); color: #000; border:none; padding: 8px 25px;" onclick="nextAction()">LANJUTKAN</button>
+            </div>
+            
+            <div id="quiz-content">
+                <div id="level-title" style="text-align:center; color: var(--gold-glow); font-size: 0.6rem; letter-spacing: 2px; margin-bottom: 5px; opacity: 0.7;">TINGKAT 1</div>
+                <div id="question">Memuat soal...</div>
+                <div id="options" class="options-grid"></div>
+                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div id="hint-text" style="font-style: italic; font-size: 0.65rem; color: #ccc;"></div>
+                    <button id="ui-hint" onclick="useHint()" style="background:none; border: 1px solid var(--gold-glow); color: var(--gold-glow); padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; cursor: pointer;">WISIK ISMAYA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="victory-screen">
+        <h1 style="color: var(--gold-glow); font-size: 3rem; text-shadow: 0 0 20px gold;">JAYANTI!</h1>
+        <p style="text-align:center; margin-bottom: 20px;">Anda telah memenangkan seluruh pertempuran Karaton.</p>
+        <button class="opt-btn" onclick="backToMenu()">KEMBALI KE KERATON</button>
+    </div>
+
+    <div id="gameover-screen">
+        <h1 style="color: #ff0000; font-size: 4rem; text-shadow: 0 0 20px #000; margin: 0;">PEJAH</h1>
+        <p style="color: #fff; margin: 10px 0 30px 0; font-family: 'Cinzel'; letter-spacing: 2px; font-size: 1.1rem; width: 100%; display: block;">Gugur ing madyaning paprangan</p>
+        <button class="opt-btn" onclick="retryLevel()" style="background: #ff0000; color: white; border: none; padding: 15px 40px; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">ULANGI PERJUANGAN</button>
+        <button class="opt-btn" onclick="backToMenu()" style="margin-top:15px; background: transparent; color: white; border: 1px solid white;">MENYERAH</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+
+    const firebaseConfig = JSON.parse(__firebase_config);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'aksara-ramayana-karaton';
+
+    const ASSETS = {
+        RAMA_IDLE: "https://i.postimg.cc/Dyw7bGvX/Rama_idle.png",
+        RAMA_HURT: "https://i.postimg.cc/Dyw7bGvb/Rama_hurt.png",
+        RAMA_DEAD: "https://i.postimg.cc/c4Ld83xg/Rama_dead.png",
+        RAMA_ATTACK: "https://i.postimg.cc/BQnJ1FS8/Rama_attack.png",
+        RAHWANA_IDLE: "https://i.postimg.cc/5N2fFz49/Rahwana_idle.png",
+        RAHWANA_HURT: "https://i.postimg.cc/nVkHz2J9/Rahwana_hurt.png",
+        RAHWANA_DEAD: "https://i.postimg.cc/HW2pxzgc/Rahwana_dead.png",
+        RAHWANA_ATTACK: "https://i.postimg.cc/VsRY6g8J/Rahwana_attack.png"
+    };
+
+    // --- Audio Elements ---
+    const audioMenu = document.getElementById('audio-menu');
+    const audioBattle = document.getElementById('audio-battle');
+    const sfxConfirm = document.getElementById('sfx-confirm');
+    const sfxBack = document.getElementById('sfx-back');
+    const sfxBab = document.getElementById('sfx-bab');
+    const sfxHitPlayer = document.getElementById('sfx-hit-player');
+    const sfxHitEnemy = document.getElementById('sfx-hit-enemy');
+
+    const playSFX = (audioEl) => {
+        audioEl.currentTime = 0;
+        audioEl.play().catch(e => console.log("Audio play blocked"));
+    };
+
+    const preloadImages = () => {
+        let loadedCount = 0;
+        const total = Object.keys(ASSETS).length;
+        const status = document.getElementById('loading-status');
+        Object.values(ASSETS).forEach(url => {
+            const img = new Image();
+            img.onload = () => {
+                loadedCount++;
+                status.innerText = `MENYIAPKAN PUSAKA (${Math.floor((loadedCount/total)*100)}%)...`;
+                if (loadedCount === total) {
+                    setTimeout(() => {
+                        document.getElementById('loading-overlay').style.display = 'none';
+                        audioMenu.play().catch(e => console.log("Interact to play music"));
+                    }, 500);
+                }
+            };
+            img.src = url;
+        });
+    };
+
+    window.database = [
+        {
+            title: "SAYEMBARA MANTILI",
+            enemyName: "RAHWANA",
+            enemyMaxHp: 450000,
+            questions: [
+                { q: "Rama memenangkan Sinta setelah berhasil mematahkan pusaka apa?", a: ["Busur Gandewa", "Keris Kyai Jalak", "Batu Akik", "Pedang Naga"], c: "Busur Gandewa", h: "Senjata pusaka suci Dewa Siwa.", r: "Hanya titisan Wisnu yang sanggup mematahkan busur Gandewa milik Prabu Janaka." },
+                { q: "Siapakah tokoh tertua Punakawan titisan Sang Hyang Ismaya?", a: ["Semar", "Gareng", "Petruk", "Bagong"], c: "Semar", h: "Tokoh berwajah putih dan tubuh bulat.", r: "Semar adalah pamong para ksatria yang merupakan personifikasi dewa di bumi." },
+                { q: "Siapakah adik kandung Rama yang setia menemani saat pengasingan?", a: ["Laksmana", "Barata", "Satrugna", "Sugriwa"], c: "Laksmana", h: "Ksatria yang ahli memanah dan sangat setia.", r: "Laksmana meninggalkan kemewahan istana demi melindungi kakaknya." }
+            ]
+        },
+        {
+            title: "UJIAN FILOSOFI",
+            enemyName: "KUMBAKARNA",
+            enemyMaxHp: 600000,
+            questions: [
+                { q: "Ciri fisik Gareng yang tangannya 'cekot' memiliki filosofi...", a: ["Tidak mengambil hak orang lain", "Suka memukul", "Suka sedekah", "Ahli senjata"], c: "Tidak mengambil hak orang lain", h: "Waspada terhadap barang milik orang lain.", r: "Tangan melengkung melambangkan kewaspadaan agar tidak mencuri." },
+                { q: "Mata Semar yang selalu terlihat sembab melambangkan...", a: ["Empati penderitaan dunia", "Rasa kantuk", "Kesedihan pribadi", "Kemarahan"], c: "Empati penderitaan dunia", h: "Menangis dalam senyuman.", r: "Matanya menangis karena empati mendalam pada nasib rakyat." }
+            ]
+        }
+    ];
+
+    window.gameState = { 
+        level: 0, qIndex: 0, hp: 100000, maxHp: 100000,
+        enemyHp: 300000, enemyMaxHp: 300000,
+        isAnswering: false, timer: null, timeLeft: 10,
+        userId: null
+    };
+
+    const saveToCloud = async () => {
+        if (!window.gameState.userId) return;
+        try {
+            const userRef = doc(db, 'artifacts', appId, 'users', window.gameState.userId, 'saveData', 'progress');
+            await setDoc(userRef, {
+                level: window.gameState.level,
+                hp: window.gameState.hp,
+                timestamp: new Date().toISOString()
+            }, { merge: true });
+        } catch (e) { console.error(e); }
+    };
+
+    const loadFromCloud = async (uid) => {
+        const userRef = doc(db, 'artifacts', appId, 'users', uid, 'saveData', 'progress');
+        const snap = await getDoc(userRef);
+        if (snap.exists()) {
+            const data = snap.data();
+            window.gameState.level = data.level || 0;
+            window.gameState.hp = data.hp || 100000;
+            document.getElementById('cloud-status').innerText = "Cloud Sync: Bab " + (window.gameState.level+1);
+        }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            window.gameState.userId = user.uid;
+            loadFromCloud(user.uid);
+        } else {
+            signInAnonymously(auth);
+        }
+    });
+
+    window.startGame = () => {
+        playSFX(sfxConfirm);
+        audioMenu.pause();
+        audioMenu.currentTime = 0;
+        
+        document.getElementById('menu-screen').style.display = 'none';
+        document.getElementById('battle-screen').style.display = 'flex';
+        document.getElementById('player-img').src = ASSETS.RAMA_IDLE;
+        document.getElementById('enemy-img').src = ASSETS.RAHWANA_IDLE;
+        
+        audioBattle.play().catch(e => console.log("Audio requires interaction"));
+        window.loadLevel();
+    };
+
+    window.backToMenu = () => {
+        playSFX(sfxBack);
+        clearInterval(window.gameState.timer);
+        window.gameState.qIndex = 0;
+        window.gameState.isAnswering = false;
+        
+        audioBattle.pause();
+        audioBattle.currentTime = 0;
+        audioMenu.play();
+
+        document.getElementById('victory-screen').style.display = 'none';
+        document.getElementById('gameover-screen').style.display = 'none';
+        document.getElementById('battle-screen').style.display = 'none';
+        document.getElementById('quiz-ui').style.visibility = 'visible';
+        document.getElementById('menu-screen').style.display = 'flex';
+        
+        if (window.gameState.userId) loadFromCloud(window.gameState.userId);
+    };
+
+    window.loadLevel = () => {
+        const data = window.database[window.gameState.level];
+        if (!data) return window.showEnd('victory');
+        
+        playSFX(sfxBab);
+        const transition = document.getElementById('level-transition');
+        document.getElementById('transition-text').innerText = "BAB " + (window.gameState.level + 1) + ": " + data.title;
+        
+        transition.classList.add('active');
+        
+        setTimeout(() => {
+            transition.classList.remove('active');
+            window.gameState.qIndex = 0;
+            window.gameState.enemyMaxHp = data.enemyMaxHp;
+            window.gameState.enemyHp = data.enemyMaxHp;
+            document.getElementById('enemy-name').innerText = data.enemyName;
+            window.updateHP();
+            window.showQuestion();
+            saveToCloud();
+        }, 2200);
+    };
+
+    window.showQuestion = () => {
+        const levelData = window.database[window.gameState.level];
+        if(!levelData) return;
+        
+        window.gameState.isAnswering = false;
+        const qData = levelData.questions[window.gameState.qIndex];
+        document.getElementById('quiz-content').style.display = 'block';
+        document.getElementById('rationale-box').style.display = 'none';
+        document.getElementById('question').innerText = qData.q;
+        document.getElementById('level-title').innerText = "TINGKAT " + (window.gameState.level + 1) + " - SOAL " + (window.gameState.qIndex + 1);
+        document.getElementById('hint-text').innerText = "";
+        const optCont = document.getElementById('options');
+        optCont.innerHTML = '';
+        [...qData.a].sort(() => Math.random() - 0.5).forEach((v) => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = v;
+            btn.onclick = () => {
+                playSFX(sfxConfirm);
+                window.checkAnswer(v === qData.c);
+            };
+            optCont.appendChild(btn);
+        });
+        window.startTimer();
+    };
+
+    window.startTimer = () => {
+        clearInterval(window.gameState.timer);
+        window.gameState.timeLeft = 10; 
+        const fill = document.getElementById('timer-fill');
+        const txt = document.getElementById('timer-text');
+        window.gameState.timer = setInterval(() => {
+            window.gameState.timeLeft -= 0.1;
+            txt.innerText = Math.max(0, Math.ceil(window.gameState.timeLeft));
+            fill.style.width = (window.gameState.timeLeft / 10 * 100) + '%';
+            if (window.gameState.timeLeft <= 0) { 
+                clearInterval(window.gameState.timer); 
+                window.takeDamage(20000); 
+            }
+        }, 100);
+    };
+
+    window.checkAnswer = (isCorrect) => {
+        if (window.gameState.isAnswering) return;
+        window.gameState.isAnswering = true;
+        clearInterval(window.gameState.timer);
+        if (isCorrect) {
+            // HP Regen 1% if not full
+            if(window.gameState.hp < window.gameState.maxHp) {
+                const regen = window.gameState.maxHp * 0.01;
+                window.gameState.hp = Math.min(window.gameState.maxHp, window.gameState.hp + regen);
+                window.createFloatingText(regen, true, -20);
+            }
+            window.attackEnemy(); 
+        } else {
+            window.takeDamage(25000);
+        }
+    };
+
+    window.attackEnemy = () => {
+        const levelData = window.database[window.gameState.level];
+        const dmg = Math.floor(window.gameState.enemyMaxHp / levelData.questions.length) + 5000; 
+        const playerImg = document.getElementById('player-img');
+        const enemyImg = document.getElementById('enemy-img');
+        
+        playerImg.src = ASSETS.RAMA_ATTACK;
+        playerImg.style.transform = `translateY(-20px) translateX(60px) scale(1.1)`;
+        
+        setTimeout(() => {
+            window.gameState.enemyHp -= dmg;
+            enemyImg.src = window.gameState.enemyHp <= 0 ? ASSETS.RAHWANA_DEAD : ASSETS.RAHWANA_HURT;
+            
+            // SFX & VFX
+            playSFX(sfxHitEnemy);
+            window.createFireExplosion('enemy-img');
+            window.createFloatingText(dmg, false, 20);
+            document.getElementById('game-container').classList.add('shake');
+            
+            window.updateHP();
+            setTimeout(() => {
+                playerImg.src = ASSETS.RAMA_IDLE;
+                playerImg.style.transform = "none";
+                if (window.gameState.enemyHp > 0) enemyImg.src = ASSETS.RAHWANA_IDLE;
+                document.getElementById('game-container').classList.remove('shake');
+                window.showRationale();
+            }, 400);
+        }, 150);
+    };
+
+    window.takeDamage = (dmg) => {
+        window.gameState.hp -= dmg;
+        const playerImg = document.getElementById('player-img');
+        const enemyImg = document.getElementById('enemy-img');
+        
+        enemyImg.src = ASSETS.RAHWANA_ATTACK;
+        enemyImg.style.transform = `translateX(-80px) scale(1.2)`;
+        
+        setTimeout(() => {
+            playerImg.src = window.gameState.hp <= 0 ? ASSETS.RAMA_DEAD : ASSETS.RAMA_HURT;
+            
+            // SFX & VFX
+            playSFX(sfxHitPlayer);
+            window.createFireExplosion('player-img');
+            window.createFloatingText(dmg, false, -20);
+            document.getElementById('game-container').classList.add('shake');
+            
+            window.updateHP();
+            setTimeout(() => {
+                enemyImg.src = ASSETS.RAHWANA_IDLE;
+                enemyImg.style.transform = "none";
+                document.getElementById('game-container').classList.remove('shake');
+                if (window.gameState.hp <= 0) window.showEnd('gameover'); else {
+                    playerImg.src = ASSETS.RAMA_IDLE; 
+                    window.showRationale(); 
+                }
+            }, 400);
+        }, 200);
+    };
+
+    window.showRationale = () => {
+        const qData = window.database[window.gameState.level].questions[window.gameState.qIndex];
+        document.getElementById('quiz-content').style.display = 'none';
+        document.getElementById('rationale-box').style.display = 'block';
+        document.getElementById('rationale-text').innerHTML = `<span style="color:var(--gold-glow); font-family:'Cinzel';">PAWISIK:</span><br>${qData.r}`;
+    };
+
+    window.nextAction = () => {
+        playSFX(sfxConfirm);
+        if (window.gameState.enemyHp <= 0) {
+            window.gameState.level++;
+            window.loadLevel();
+            return;
+        }
+        window.gameState.qIndex = (window.gameState.qIndex + 1) % window.database[window.gameState.level].questions.length;
+        window.showQuestion();
+    };
+
+    window.updateHP = () => {
+        document.getElementById('player-hp').style.width = (window.gameState.hp / window.gameState.maxHp) * 100 + '%';
+        document.getElementById('enemy-hp').style.width = (window.gameState.enemyHp / window.gameState.enemyMaxHp) * 100 + '%';
+        document.getElementById('player-hp-text').innerText = `${Math.max(0, Math.floor(window.gameState.hp)).toLocaleString('id-ID')} / 100.000`;
+        document.getElementById('enemy-hp-text').innerText = `${Math.max(0, Math.floor(window.gameState.enemyHp)).toLocaleString('id-ID')} / ${window.gameState.enemyMaxHp.toLocaleString('id-ID')}`;
+    };
+
+    window.createFireExplosion = (targetId) => {
+        const target = document.getElementById(targetId);
+        const rect = target.getBoundingClientRect();
+        const container = document.createElement('div');
+        container.className = 'explosion-fire';
+        container.style.left = (rect.left + rect.width/2 - 75) + 'px';
+        container.style.top = (rect.top + rect.height/2 - 75) + 'px';
+        const core = document.createElement('div'); core.className = 'fire-core';
+        container.appendChild(core);
+        document.body.appendChild(container);
+        const flash = document.getElementById('screen-flash');
+        flash.style.animation = 'none'; flash.offsetHeight; 
+        flash.style.animation = 'screenFireFlash 0.5s ease-out forwards';
+        setTimeout(() => container.remove(), 700);
+    };
+
+    window.createFloatingText = (val, isHeal, xOffset) => {
+        const div = document.createElement('div');
+        div.className = 'floating-text';
+        div.innerText = (isHeal ? "+" : "-") + Math.floor(val).toLocaleString('id-ID');
+        div.style.color = isHeal ? "#2ecc71" : "#ff4d4d";
+        div.style.left = (50 + xOffset) + "%"; div.style.top = "35%"; 
+        document.getElementById('battle-screen').appendChild(div);
+        setTimeout(() => div.remove(), 1000);
+    };
+
+    window.useHint = () => {
+        playSFX(sfxConfirm);
+        document.getElementById('hint-text').innerText = "» " + window.database[window.gameState.level].questions[window.gameState.qIndex].h;
+    };
+
+    window.showEnd = (type) => {
+        if (type === 'gameover') {
+            document.getElementById('quiz-ui').style.visibility = 'hidden';
+            document.getElementById('gameover-screen').style.display = 'flex';
+        } else {
+            document.getElementById('battle-screen').style.display = 'none';
+            document.getElementById(type + '-screen').style.display = 'flex';
+        }
+        saveToCloud();
+    };
+
+    window.retryLevel = () => {
+        playSFX(sfxConfirm);
+        window.gameState.hp = window.gameState.maxHp;
+        window.gameState.enemyHp = window.database[window.gameState.level].enemyMaxHp;
+        document.getElementById('gameover-screen').style.display = 'none';
+        document.getElementById('quiz-ui').style.visibility = 'visible';
+        document.getElementById('player-img').src = ASSETS.RAMA_IDLE;
+        window.updateHP(); 
+        window.gameState.qIndex = 0;
+        window.showQuestion();
+    };
+
+    preloadImages();
+</script>
+</body>
+</html>
