@@ -58,6 +58,7 @@ h1, h2, .hp-label, #level-title, #continue-btn, #ui-start, #ui-resume, .opt-btn,
 <body>
 <div id="loading-overlay"><div style="font-family: 'Cinzel'; font-size: 2rem; margin-bottom: 10px;">AKSARAMAYANA</div><div id="loading-status" style="font-size: 0.8rem; letter-spacing: 4px;">MEMUAT TAKDIR...</div></div>
 
+<!-- AUDIO ASSETS -->
 <audio id="audio-menu" loop preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/menu.mp3"></audio>
 <audio id="audio-battle" loop preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/97db58b5d604c46fce22d4622a35afe4c8764aa1/Epic%20Forge%20of%20the%20Gamelan.mp3"></audio>
 <audio id="sfx-confirm" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/confirm.wav"></audio>
@@ -65,6 +66,8 @@ h1, h2, .hp-label, #level-title, #continue-btn, #ui-start, #ui-resume, .opt-btn,
 <audio id="sfx-bab" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/bab1.wav"></audio>
 <audio id="sfx-hit-player" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/arrow.wav"></audio>
 <audio id="sfx-hit-enemy" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/hit.wav"></audio>
+<audio id="sfx-jayanti" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/0b31405679cfa4c1fae72d499ed38332f6ea1bd5/win.mp3"></audio>
+<audio id="sfx-petjah" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/0b31405679cfa4c1fae72d499ed38332f6ea1bd5/lose.mp3"></audio>
 
 <div id="game-container">
     <div id="screen-flash"></div><div id="battle-bg"></div>
@@ -104,8 +107,8 @@ h1, h2, .hp-label, #level-title, #continue-btn, #ui-start, #ui-resume, .opt-btn,
         </div>
     </div>
 
-    <div id="victory-screen"><h1 style="color: var(--gold-glow); font-size: 3rem; text-shadow: 0 0 20px gold;">JAYANTI!</h1><p style="text-align:center; margin-bottom: 20px;">Anda telah memenangkan seluruh pertempuran Karaton.</p><button class="opt-btn" onclick="backToMenu()">KEMBALI KE KERATON</button></div>
-    <div id="gameover-screen"><h1 style="color: #ff0000; font-size: 4rem; text-shadow: 0 0 20px #000; margin: 0;">PEJAH</h1><p style="color: #fff; margin: 10px 0 30px 0; font-family: 'Cinzel'; letter-spacing: 2px; font-size: 1.1rem;">Gugur ing madyaning paprangan</p><button class="opt-btn" onclick="retryLevel()" style="background: #ff0000; color: white; border: none; padding: 15px 40px; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">ULANGI PERJUANGAN</button><button class="opt-btn" onclick="backToMenu()" style="margin-top:15px; background: transparent; color: white; border: 1px solid white;">MENYERAH</button></div>
+    <div id="victory-screen"><h1 style="color: var(--gold-glow); font-size: 3rem; text-shadow: 0 0 20px gold;">JAYANTI!</h1><p style="text-align:center; margin-bottom: 20px;">Anda telah memenangkan seluruh pertempuran Karaton.</p><button class="opt-btn" onclick="backToMenu('victory')">KEMBALI KE KERATON</button></div>
+    <div id="gameover-screen"><h1 style="color: #ff0000; font-size: 4rem; text-shadow: 0 0 20px #000; margin: 0;">PEJAH</h1><p style="color: #fff; margin: 10px 0 30px 0; font-family: 'Cinzel'; letter-spacing: 2px; font-size: 1.1rem;">Gugur ing madyaning paprangan</p><button class="opt-btn" onclick="retryLevel()" style="background: #ff0000; color: white; border: none; padding: 15px 40px; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">ULANGI PERJUANGAN</button><button class="opt-btn" onclick="backToMenu('gameover')" style="margin-top:15px; background: transparent; color: white; border: 1px solid white;">MENYERAH</button></div>
 </div>
 
 <script type="module">
@@ -117,7 +120,29 @@ const firebaseConfig = JSON.parse(__firebase_config), app = initializeApp(fireba
 const $ = id => document.getElementById(id);
 
 const ASSETS = { RAMA_IDLE: "https://i.postimg.cc/Dyw7bGvX/Rama_idle.png", RAMA_HURT: "https://i.postimg.cc/Dyw7bGvb/Rama_hurt.png", RAMA_DEAD: "https://i.postimg.cc/c4Ld83xg/Rama_dead.png", RAMA_ATTACK: "https://i.postimg.cc/BQnJ1FS8/Rama_attack.png", RAHWANA_IDLE: "https://i.postimg.cc/5N2fFz49/Rahwana_idle.png", RAHWANA_HURT: "https://i.postimg.cc/nVkHz2J9/Rahwana_hurt.png", RAHWANA_DEAD: "https://i.postimg.cc/HW2pxzgc/Rahwana_dead.png", RAHWANA_ATTACK: "https://i.postimg.cc/VsRY6g8J/Rahwana_attack.png" };
-const playSFX = audio => { audio.currentTime = 0; audio.play().catch(e => {}); };
+
+const playSFX = (audio, vol = 1) => { 
+    if(!audio) return;
+    audio.currentTime = 0; 
+    audio.volume = vol;
+    audio.play().catch(e => {}); 
+};
+
+const fadeOutAudio = (audio, duration = 1000) => {
+    if (!audio || audio.paused) return;
+    const initialVolume = audio.volume;
+    const step = initialVolume / (duration / 50);
+    const fadeInterval = setInterval(() => {
+        if (audio.volume > step) {
+            audio.volume -= step;
+        } else {
+            audio.volume = 0;
+            audio.pause();
+            audio.volume = initialVolume;
+            clearInterval(fadeInterval);
+        }
+    }, 50);
+};
 
 window.database = [
     { title: "SAYEMBARA MANTILI", enemyName: "RAHWANA", enemyMaxHp: 450000, questions: [ { q: "Rama memenangkan Sinta setelah berhasil mematahkan pusaka apa?", a: ["Busur Gandewa", "Keris Kyai Jalak", "Batu Akik", "Pedang Naga"], c: "Busur Gandewa", h: "Senjata pusaka suci Dewa Siwa.", r: "Hanya titisan Wisnu yang sanggup mematahkan busur Gandewa milik Prabu Janaka." }, { q: "Siapakah tokoh tertua Punakawan titisan Sang Hyang Ismaya?", a: ["Semar", "Gareng", "Petruk", "Bagong"], c: "Semar", h: "Tokoh berwajah putih and tubuh bulat.", r: "Semar adalah pamong para ksatria yang merupakan personifikasi dewa di bumi." }, { q: "Siapakah adik kandung Rama yang setia menemani saat pengasingan?", a: ["Laksmana", "Barata", "Satrugna", "Sugriwa"], c: "Laksmana", h: "Ksatria yang ahli memanah dan sangat setia.", r: "Laksmana meninggalkan kemewahan istana demi melindungi kakaknya." } ] },
@@ -143,15 +168,28 @@ window.startGame = isNew => {
     if (isNew) { window.gameState.level = 0; window.gameState.hp = 100000; } else if (window.saveData) { window.gameState.level = window.saveData.level; window.gameState.hp = window.saveData.hp; }
     $('menu-screen').style.display = 'none'; $('battle-screen').style.display = 'flex';
     $('player-img').src = ASSETS.RAMA_IDLE; $('enemy-img').src = ASSETS.RAHWANA_IDLE;
+    $('audio-battle').volume = 1;
     $('audio-battle').play().catch(e => {}); window.loadLevel();
 };
 
 window.loadLevel = () => {
-    const data = window.database[window.gameState.level]; if (!data) return window.showEnd('victory');
-    playSFX($('sfx-bab')); const transition = $('level-transition'); $('transition-text').innerText = "BAB " + (window.gameState.level + 1) + ": " + data.title; transition.classList.add('active');
+    const data = window.database[window.gameState.level]; 
+    if (!data) return window.showEnd('victory'); 
+    
+    playSFX($('sfx-bab')); 
+    const transition = $('level-transition'); 
+    $('transition-text').innerText = "BAB " + (window.gameState.level + 1) + ": " + data.title; 
+    transition.classList.add('active');
+    
     setTimeout(() => {
-        transition.classList.remove('active'); window.gameState.qIndex = 0; window.gameState.enemyMaxHp = data.enemyMaxHp; window.gameState.enemyHp = data.enemyMaxHp;
-        $('enemy-name').innerText = data.enemyName; window.updateHP(); window.showQuestion(); saveToCloud();
+        transition.classList.remove('active'); 
+        window.gameState.qIndex = 0; 
+        window.gameState.enemyMaxHp = data.enemyMaxHp; 
+        window.gameState.enemyHp = data.enemyMaxHp;
+        $('enemy-name').innerText = data.enemyName; 
+        window.updateHP(); 
+        window.showQuestion(); 
+        saveToCloud();
     }, 2200);
 };
 
@@ -229,9 +267,39 @@ window.createFloatingText = (val, isHeal, xOffset) => {
 };
 
 window.useHint = () => { playSFX($('sfx-confirm')); $('hint-text').innerText = "» " + window.database[window.gameState.level].questions[window.gameState.qIndex].h; };
-window.retryLevel = () => { window.gameState.hp = 100000; $('gameover-screen').style.display = 'none'; window.loadLevel(); };
-window.backToMenu = () => { playSFX($('sfx-back')); clearInterval(window.gameState.timer); $('victory-screen').style.display = 'none'; $('gameover-screen').style.display = 'none'; $('battle-screen').style.display = 'none'; $('menu-screen').style.display = 'flex'; $('audio-battle').pause(); $('audio-menu').play(); if(window.gameState.userId) loadFromCloud(window.gameState.userId); };
-window.showEnd = type => { clearInterval(window.gameState.timer); $(type + '-screen').style.display = 'flex'; };
+
+window.retryLevel = () => { 
+    fadeOutAudio($('sfx-petjah'), 500); // Fade out lose SFX
+    window.gameState.hp = 100000; 
+    $('gameover-screen').style.display = 'none'; 
+    $('audio-battle').volume = 1;
+    $('audio-battle').play().catch(e => {});
+    window.loadLevel(); 
+};
+
+window.backToMenu = (fromScreen) => { 
+    playSFX($('sfx-back')); 
+    if (fromScreen === 'victory') fadeOutAudio($('sfx-jayanti'), 800);
+    if (fromScreen === 'gameover') fadeOutAudio($('sfx-petjah'), 800);
+    
+    clearInterval(window.gameState.timer); 
+    $('victory-screen').style.display = 'none'; 
+    $('gameover-screen').style.display = 'none'; 
+    $('battle-screen').style.display = 'none'; 
+    $('menu-screen').style.display = 'flex'; 
+    $('audio-battle').pause(); 
+    $('audio-menu').play(); 
+    if(window.gameState.userId) loadFromCloud(window.gameState.userId); 
+};
+
+window.showEnd = type => { 
+    clearInterval(window.gameState.timer); 
+    fadeOutAudio($('audio-battle'), 800);
+    $(type + '-screen').style.display = 'flex'; 
+    
+    if(type === 'victory') playSFX($('sfx-jayanti'), 1);
+    if(type === 'gameover') playSFX($('sfx-petjah'), 1); // Full volume for impactful loss
+};
 
 const status = $('loading-status'); let loaded = 0; const total = Object.keys(ASSETS).length;
 Object.values(ASSETS).forEach(url => { const img = new Image(); img.onload = () => { loaded++; status.innerText = `MENYIAPKAN PUSAKA (${Math.floor((loaded/total)*100)}%)...`; if(loaded === total) { setTimeout(() => { $('loading-overlay').style.display = 'none'; $('audio-menu').play().catch(e => {}); }, 500); } }; img.src = url; });
