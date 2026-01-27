@@ -22,7 +22,7 @@
             background: #000; color: var(--paper);
         }
 
-        h1, h2, .hp-label, #level-title, #continue-btn, #ui-start, .opt-btn, #ui-hint, .hp-values, #timer-text, #transition-text { 
+        h1, h2, .hp-label, #level-title, #continue-btn, #ui-start, #ui-resume, .opt-btn, #ui-hint, .hp-values, #timer-text, #transition-text { 
             font-family: 'Cinzel', serif; 
             font-weight: 700; 
         }
@@ -192,6 +192,8 @@
             z-index: 200; padding: 20px; box-sizing: border-box;
         }
 
+        .menu-btns { display: flex; flex-direction: column; gap: 12px; width: 260px; }
+
         #gameover-screen, #victory-screen {
             display: none;
             position: absolute;
@@ -284,7 +286,12 @@
     <div id="menu-screen">
         <h1 style="font-size: clamp(2rem, 8vw, 5rem); color: var(--gold-glow); margin: 0; text-shadow: 0 0 30px rgba(0,0,0,1); text-align: center;">AKSARAMAYANA</h1>
         <p style="letter-spacing: 6px; margin-bottom: 30px; font-family: 'Cinzel'; font-size: 0.9rem; opacity: 0.8;">KARATON LEGACY</p>
-        <button class="opt-btn" onclick="startGame()" id="ui-start">MULAI PERJALANAN</button>
+        
+        <div class="menu-btns">
+            <button class="opt-btn" onclick="startGame(true)" id="ui-start">PERJALANAN BARU</button>
+            <button class="opt-btn" onclick="startGame(false)" id="ui-resume" style="display:none; border-color: #fff; background: rgba(255,255,255,0.1);">LANJUTKAN</button>
+        </div>
+
         <p id="cloud-status" style="font-size: 0.6rem; margin-top: 15px; opacity: 0.5;">Cloud Sync: Menghubungkan...</p>
     </div>
 
@@ -370,7 +377,6 @@
         RAHWANA_ATTACK: "https://i.postimg.cc/VsRY6g8J/Rahwana_attack.png"
     };
 
-    // --- Audio Elements ---
     const audioMenu = document.getElementById('audio-menu');
     const audioBattle = document.getElementById('audio-battle');
     const sfxConfirm = document.getElementById('sfx-confirm');
@@ -381,27 +387,7 @@
 
     const playSFX = (audioEl) => {
         audioEl.currentTime = 0;
-        audioEl.play().catch(e => console.log("Audio play blocked"));
-    };
-
-    const preloadImages = () => {
-        let loadedCount = 0;
-        const total = Object.keys(ASSETS).length;
-        const status = document.getElementById('loading-status');
-        Object.values(ASSETS).forEach(url => {
-            const img = new Image();
-            img.onload = () => {
-                loadedCount++;
-                status.innerText = `MENYIAPKAN PUSAKA (${Math.floor((loadedCount/total)*100)}%)...`;
-                if (loadedCount === total) {
-                    setTimeout(() => {
-                        document.getElementById('loading-overlay').style.display = 'none';
-                        audioMenu.play().catch(e => console.log("Interact to play music"));
-                    }, 500);
-                }
-            };
-            img.src = url;
-        });
+        audioEl.play().catch(e => {});
     };
 
     window.database = [
@@ -411,7 +397,7 @@
             enemyMaxHp: 450000,
             questions: [
                 { q: "Rama memenangkan Sinta setelah berhasil mematahkan pusaka apa?", a: ["Busur Gandewa", "Keris Kyai Jalak", "Batu Akik", "Pedang Naga"], c: "Busur Gandewa", h: "Senjata pusaka suci Dewa Siwa.", r: "Hanya titisan Wisnu yang sanggup mematahkan busur Gandewa milik Prabu Janaka." },
-                { q: "Siapakah tokoh tertua Punakawan titisan Sang Hyang Ismaya?", a: ["Semar", "Gareng", "Petruk", "Bagong"], c: "Semar", h: "Tokoh berwajah putih dan tubuh bulat.", r: "Semar adalah pamong para ksatria yang merupakan personifikasi dewa di bumi." },
+                { q: "Siapakah tokoh tertua Punakawan titisan Sang Hyang Ismaya?", a: ["Semar", "Gareng", "Petruk", "Bagong"], c: "Semar", h: "Tokoh berwajah putih and tubuh bulat.", r: "Semar adalah pamong para ksatria yang merupakan personifikasi dewa di bumi." },
                 { q: "Siapakah adik kandung Rama yang setia menemani saat pengasingan?", a: ["Laksmana", "Barata", "Satrugna", "Sugriwa"], c: "Laksmana", h: "Ksatria yang ahli memanah dan sangat setia.", r: "Laksmana meninggalkan kemewahan istana demi melindungi kakaknya." }
             ]
         },
@@ -450,9 +436,11 @@
         const snap = await getDoc(userRef);
         if (snap.exists()) {
             const data = snap.data();
-            window.gameState.level = data.level || 0;
-            window.gameState.hp = data.hp || 100000;
-            document.getElementById('cloud-status').innerText = "Cloud Sync: Bab " + (window.gameState.level+1);
+            window.saveData = data; // Simpan sementara untuk tombol resume
+            document.getElementById('ui-resume').style.display = 'block';
+            document.getElementById('cloud-status').innerText = "Cloud Sync: Bab " + (data.level + 1);
+        } else {
+            document.getElementById('cloud-status').innerText = "Cloud Sync: Baru";
         }
     };
 
@@ -465,37 +453,26 @@
         }
     });
 
-    window.startGame = () => {
+    // Main Functions
+    window.startGame = (isNew) => {
         playSFX(sfxConfirm);
         audioMenu.pause();
-        audioMenu.currentTime = 0;
         
+        if (isNew) {
+            window.gameState.level = 0;
+            window.gameState.hp = 100000;
+        } else if (window.saveData) {
+            window.gameState.level = window.saveData.level;
+            window.gameState.hp = window.saveData.hp;
+        }
+
         document.getElementById('menu-screen').style.display = 'none';
         document.getElementById('battle-screen').style.display = 'flex';
         document.getElementById('player-img').src = ASSETS.RAMA_IDLE;
         document.getElementById('enemy-img').src = ASSETS.RAHWANA_IDLE;
         
-        audioBattle.play().catch(e => console.log("Audio requires interaction"));
+        audioBattle.play().catch(e => {});
         window.loadLevel();
-    };
-
-    window.backToMenu = () => {
-        playSFX(sfxBack);
-        clearInterval(window.gameState.timer);
-        window.gameState.qIndex = 0;
-        window.gameState.isAnswering = false;
-        
-        audioBattle.pause();
-        audioBattle.currentTime = 0;
-        audioMenu.play();
-
-        document.getElementById('victory-screen').style.display = 'none';
-        document.getElementById('gameover-screen').style.display = 'none';
-        document.getElementById('battle-screen').style.display = 'none';
-        document.getElementById('quiz-ui').style.visibility = 'visible';
-        document.getElementById('menu-screen').style.display = 'flex';
-        
-        if (window.gameState.userId) loadFromCloud(window.gameState.userId);
     };
 
     window.loadLevel = () => {
@@ -505,7 +482,6 @@
         playSFX(sfxBab);
         const transition = document.getElementById('level-transition');
         document.getElementById('transition-text').innerText = "BAB " + (window.gameState.level + 1) + ": " + data.title;
-        
         transition.classList.add('active');
         
         setTimeout(() => {
@@ -531,6 +507,7 @@
         document.getElementById('question').innerText = qData.q;
         document.getElementById('level-title').innerText = "TINGKAT " + (window.gameState.level + 1) + " - SOAL " + (window.gameState.qIndex + 1);
         document.getElementById('hint-text').innerText = "";
+        
         const optCont = document.getElementById('options');
         optCont.innerHTML = '';
         [...qData.a].sort(() => Math.random() - 0.5).forEach((v) => {
@@ -567,7 +544,6 @@
         window.gameState.isAnswering = true;
         clearInterval(window.gameState.timer);
         if (isCorrect) {
-            // HP Regen 1% if not full
             if(window.gameState.hp < window.gameState.maxHp) {
                 const regen = window.gameState.maxHp * 0.01;
                 window.gameState.hp = Math.min(window.gameState.maxHp, window.gameState.hp + regen);
@@ -592,7 +568,6 @@
             window.gameState.enemyHp -= dmg;
             enemyImg.src = window.gameState.enemyHp <= 0 ? ASSETS.RAHWANA_DEAD : ASSETS.RAHWANA_HURT;
             
-            // SFX & VFX
             playSFX(sfxHitEnemy);
             window.createFireExplosion('enemy-img');
             window.createFloatingText(dmg, false, 20);
@@ -620,7 +595,6 @@
         setTimeout(() => {
             playerImg.src = window.gameState.hp <= 0 ? ASSETS.RAMA_DEAD : ASSETS.RAMA_HURT;
             
-            // SFX & VFX
             playSFX(sfxHitPlayer);
             window.createFireExplosion('player-img');
             window.createFloatingText(dmg, false, -20);
@@ -631,7 +605,8 @@
                 enemyImg.src = ASSETS.RAHWANA_IDLE;
                 enemyImg.style.transform = "none";
                 document.getElementById('game-container').classList.remove('shake');
-                if (window.gameState.hp <= 0) window.showEnd('gameover'); else {
+                if (window.gameState.hp <= 0) window.showEnd('gameover'); 
+                else {
                     playerImg.src = ASSETS.RAMA_IDLE; 
                     window.showRationale(); 
                 }
@@ -666,6 +641,7 @@
 
     window.createFireExplosion = (targetId) => {
         const target = document.getElementById(targetId);
+        if(!target) return;
         const rect = target.getBoundingClientRect();
         const container = document.createElement('div');
         container.className = 'explosion-fire';
@@ -695,30 +671,48 @@
         document.getElementById('hint-text').innerText = "» " + window.database[window.gameState.level].questions[window.gameState.qIndex].h;
     };
 
-    window.showEnd = (type) => {
-        if (type === 'gameover') {
-            document.getElementById('quiz-ui').style.visibility = 'hidden';
-            document.getElementById('gameover-screen').style.display = 'flex';
-        } else {
-            document.getElementById('battle-screen').style.display = 'none';
-            document.getElementById(type + '-screen').style.display = 'flex';
-        }
-        saveToCloud();
-    };
-
     window.retryLevel = () => {
-        playSFX(sfxConfirm);
-        window.gameState.hp = window.gameState.maxHp;
-        window.gameState.enemyHp = window.database[window.gameState.level].enemyMaxHp;
+        window.gameState.hp = 100000;
         document.getElementById('gameover-screen').style.display = 'none';
-        document.getElementById('quiz-ui').style.visibility = 'visible';
-        document.getElementById('player-img').src = ASSETS.RAMA_IDLE;
-        window.updateHP(); 
-        window.gameState.qIndex = 0;
-        window.showQuestion();
+        window.loadLevel();
     };
 
-    preloadImages();
+    window.backToMenu = () => {
+        playSFX(sfxBack);
+        clearInterval(window.gameState.timer);
+        document.getElementById('victory-screen').style.display = 'none';
+        document.getElementById('gameover-screen').style.display = 'none';
+        document.getElementById('battle-screen').style.display = 'none';
+        document.getElementById('menu-screen').style.display = 'flex';
+        audioBattle.pause();
+        audioMenu.play();
+        if(window.gameState.userId) loadFromCloud(window.gameState.userId);
+    };
+
+    window.showEnd = (type) => {
+        clearInterval(window.gameState.timer);
+        document.getElementById(type + '-screen').style.display = 'flex';
+    };
+
+    // Preload Images
+    const status = document.getElementById('loading-status');
+    let loaded = 0;
+    const total = Object.keys(ASSETS).length;
+    Object.values(ASSETS).forEach(url => {
+        const img = new Image();
+        img.onload = () => {
+            loaded++;
+            status.innerText = `MENYIAPKAN PUSAKA (${Math.floor((loaded/total)*100)}%)...`;
+            if(loaded === total) {
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    audioMenu.play().catch(e => {});
+                }, 500);
+            }
+        };
+        img.src = url;
+    });
+
 </script>
 </body>
 </html>
