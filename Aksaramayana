@@ -10,15 +10,56 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Lato', sans-serif; background: #000; color: var(--paper); }
 h1, h2, .hp-label, #level-title, #continue-btn, #ui-start, #ui-resume, .opt-btn, #ui-hint, .hp-values, #timer-text, #transition-text { font-family: 'Cinzel', serif; font-weight: 700; }
+
+/* Animasi Judul Utama */
+@keyframes titleSlam {
+    0% { transform: scale(5); opacity: 0; filter: blur(20px); }
+    70% { transform: scale(0.9); opacity: 1; filter: blur(0); }
+    100% { transform: scale(1); opacity: 1; text-shadow: 0 0 30px var(--gold-glow), 0 0 60px var(--fire-orange); }
+}
+
+.title-animate {
+    animation: titleSlam 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Partikel Api Menu */
+#fire-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+}
+.spark {
+    position: absolute;
+    background: var(--fire-orange);
+    border-radius: 50%;
+    filter: blur(1px);
+    animation: rise var(--duration) linear infinite;
+    opacity: 0;
+}
+@keyframes rise {
+    0% { transform: translateY(100%) translateX(0); opacity: 0; }
+    20% { opacity: 0.8; }
+    80% { opacity: 0.4; }
+    100% { transform: translateY(-500px) translateX(var(--drift)); opacity: 0; }
+}
+
 #game-container { position: relative; width: 100vw; height: 100vh; background: #000; overflow: hidden; display: flex; flex-direction: column; }
 #screen-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, var(--fire-orange), var(--fire-red), transparent); opacity: 0; z-index: 1000; pointer-events: none; mix-blend-mode: overlay; }
 #battle-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://i.postimg.cc/GmydcVwL/Battle.png') no-repeat center bottom; background-size: 140%; z-index: 1; transition: background-size 2s ease-out; }
+
 @media (max-width: 600px) { #battle-bg { background-size: 350%; } }
+
 #level-transition { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); z-index: 500; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
 #level-transition.active { opacity: 1; }
 #transition-content { text-align: center; border-top: 2px solid var(--gold-glow); border-bottom: 2px solid var(--gold-glow); padding: 40px 0; width: 100%; background: linear-gradient(90deg, transparent, rgba(184, 134, 11, 0.2), transparent); transform: scale(0.8); transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 #level-transition.active #transition-content { transform: scale(1); }
 #transition-text { color: var(--gold-glow); font-size: clamp(1.5rem, 6vw, 2.5rem); margin: 0; letter-spacing: 5px; text-shadow: 0 0 15px rgba(255, 204, 0, 0.5); }
+
 #battle-screen { display: none; width: 100%; height: 100%; position: relative; z-index: 2; flex-direction: column; }
 .hud { display: flex; justify-content: space-between; padding: 20px 25px; width: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 20; }
 .hp-container { position: relative; width: 38%; }
@@ -33,22 +74,28 @@ h1, h2, .hp-label, #level-title, #continue-btn, #ui-start, #ui-resume, .opt-btn,
 #timer-text { font-size: 2.5rem; color: white; text-shadow: 0 0 10px rgba(0,0,0,1); }
 .arena { position: absolute; bottom: 210px; left: 0; width: 100%; height: 38vh; display: flex; justify-content: center; align-items: flex-end; gap: 2%; pointer-events: none; z-index: 10; padding: 0 5%; }
 #player-img, #enemy-img { height: auto; max-height: 100%; max-width: 48%; transition: transform 0.2s ease-out, opacity 0.3s; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.9)); }
-.explosion-fire { position: absolute; width: 150px; height: 150px; z-index: 100; pointer-events: none; display: flex; justify-content: center; align-items: center; }
-.fire-core { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #fff 0%, #ffcc00 30%, #ff4500 60%, transparent 80%); border-radius: 50%; animation: fireBlast 0.5s ease-out forwards; }
-@keyframes fireBlast { 0% { transform: scale(0.2); opacity: 1; filter: brightness(2); } 100% { transform: scale(4); opacity: 0; filter: blur(10px); } }
+
 .quiz-container { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 88%; max-width: 550px; background: var(--glass-bg); backdrop-filter: blur(15px); padding: 12px 18px; border: 1px solid rgba(184, 134, 11, 0.7); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); z-index: 100; }
 #question { font-size: 0.95rem; text-align: center; margin-bottom: 12px; color: #fff; line-height: 1.3; text-shadow: 1px 1px 4px rgba(0,0,0,1); }
 .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .opt-btn { background: rgba(255,255,255,0.08); border: 1px solid var(--border-gold); color: var(--paper); padding: 10px; cursor: pointer; border-radius: 6px; font-size: 0.8rem; transition: all 0.2s; letter-spacing: 0.5px; outline: none; }
 .opt-btn:hover:not(:disabled) { background: var(--gold-glow) !important; color: #000 !important; }
-#menu-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('https://i.postimg.cc/WzYqPCRk/Menu.png'); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; padding: 20px; }
-.menu-btns { display: flex; flex-direction: column; gap: 12px; width: 260px; }
+
+#menu-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('https://i.postimg.cc/WzYqPCRk/Menu.png'); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; padding: 20px; overflow: hidden; }
+.menu-btns { display: flex; flex-direction: column; gap: 12px; width: 260px; z-index: 10; }
+
 #gameover-screen, #victory-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(6px); flex-direction: column; justify-content: center; align-items: center; z-index: 300; animation: fadeIn 0.5s ease-out forwards; text-align: center; }
 #gameover-screen { background: rgba(40, 0, 0, 0.85); }
 #victory-screen { background: rgba(10, 5, 2, 0.9); }
+
 .shake { animation: shakeEffect 0.4s ease-in-out; }
 @keyframes shakeEffect { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-12px, 8px); } 50% { transform: translate(12px, -8px); } 75% { transform: translate(-12px, -8px); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.explosion-fire { position: absolute; width: 150px; height: 150px; z-index: 100; pointer-events: none; display: flex; justify-content: center; align-items: center; }
+.fire-core { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #fff 0%, #ffcc00 30%, #ff4500 60%, transparent 80%); border-radius: 50%; animation: fireBlast 0.5s ease-out forwards; }
+@keyframes fireBlast { 0% { transform: scale(0.2); opacity: 1; filter: brightness(2); } 100% { transform: scale(4); opacity: 0; filter: blur(10px); } }
+
 .floating-text { position: absolute; font-family: 'Cinzel', serif; font-weight: bold; font-size: 1.8rem; pointer-events: none; z-index: 120; animation: floatUp 1s ease-out forwards; text-shadow: 2px 2px 5px #000; }
 @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-120px); opacity: 0; } }
 #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--gold-glow); }
@@ -58,7 +105,6 @@ h1, h2, .hp-label, #level-title, #continue-btn, #ui-start, #ui-resume, .opt-btn,
 <body>
 <div id="loading-overlay"><div style="font-family: 'Cinzel'; font-size: 2rem; margin-bottom: 10px;">AKSARAMAYANA</div><div id="loading-status" style="font-size: 0.8rem; letter-spacing: 4px;">MEMUAT TAKDIR...</div></div>
 
-<!-- AUDIO ASSETS -->
 <audio id="audio-menu" loop preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/menu.mp3"></audio>
 <audio id="audio-battle" loop preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/97db58b5d604c46fce22d4622a35afe4c8764aa1/Epic%20Forge%20of%20the%20Gamelan.mp3"></audio>
 <audio id="sfx-confirm" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/confirm.wav"></audio>
@@ -74,13 +120,17 @@ h1, h2, .hp-label, #level-title, #continue-btn, #ui-start, #ui-resume, .opt-btn,
     <div id="level-transition"><div id="transition-content"><h2 id="transition-text">BAB 1</h2></div></div>
     
     <div id="menu-screen">
-        <h1 style="font-size: clamp(2rem, 8vw, 5rem); color: var(--gold-glow); margin: 0; text-shadow: 0 0 30px rgba(0,0,0,1); text-align: center;">AKSARAMAYANA</h1>
-        <p style="letter-spacing: 6px; margin-bottom: 30px; font-family: 'Cinzel'; font-size: 0.9rem; opacity: 0.8;">KARATON LEGACY</p>
+        <!-- Partikel Api -->
+        <div id="fire-container"></div>
+        
+        <h1 id="main-title" class="title-animate" style="font-size: clamp(2.2rem, 9vw, 5.5rem); color: var(--gold-glow); margin: 0; text-align: center; z-index: 10;">AKSARAMAYANA</h1>
+        <p style="letter-spacing: 8px; margin-bottom: 35px; font-family: 'Cinzel'; font-size: 1rem; opacity: 0.9; color: #fff; text-shadow: 0 0 10px #000; z-index: 10;">KARATON LEGACY</p>
+        
         <div class="menu-btns">
             <button class="opt-btn" onclick="startGame(true)" id="ui-start">PERJALANAN BARU</button>
             <button class="opt-btn" onclick="startGame(false)" id="ui-resume" style="display:none; border-color: #fff; background: rgba(255,255,255,0.1);">LANJUTKAN</button>
         </div>
-        <p id="cloud-status" style="font-size: 0.6rem; margin-top: 15px; opacity: 0.5;">Cloud Sync: Menghubungkan...</p>
+        <p id="cloud-status" style="font-size: 0.65rem; margin-top: 20px; opacity: 0.6; color: #fff; z-index: 10;">Cloud Sync: Menghubungkan...</p>
     </div>
 
     <div id="battle-screen">
@@ -144,8 +194,27 @@ const fadeOutAudio = (audio, duration = 1000) => {
     }, 50);
 };
 
+// Fire Particle Generator
+const createFireParticles = () => {
+    const container = $('fire-container');
+    const colors = ['#ff4500', '#ff8c00', '#ffcc00', '#ffffff'];
+    for(let i=0; i<30; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'spark';
+        const size = Math.random() * 4 + 2;
+        spark.style.width = size + 'px';
+        spark.style.height = size + 'px';
+        spark.style.left = Math.random() * 100 + '%';
+        spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+        spark.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+        spark.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
+        spark.style.animationDelay = (Math.random() * 5) + 's';
+        container.appendChild(spark);
+    }
+};
+
 window.database = [
-    { title: "SAYEMBARA MANTILI", enemyName: "RAHWANA", enemyMaxHp: 450000, questions: [ { q: "Rama memenangkan Sinta setelah berhasil mematahkan pusaka apa?", a: ["Busur Gandewa", "Keris Kyai Jalak", "Batu Akik", "Pedang Naga"], c: "Busur Gandewa", h: "Senjata pusaka suci Dewa Siwa.", r: "Hanya titisan Wisnu yang sanggup mematahkan busur Gandewa milik Prabu Janaka." }, { q: "Siapakah tokoh tertua Punakawan titisan Sang Hyang Ismaya?", a: ["Semar", "Gareng", "Petruk", "Bagong"], c: "Semar", h: "Tokoh berwajah putih and tubuh bulat.", r: "Semar adalah pamong para ksatria yang merupakan personifikasi dewa di bumi." }, { q: "Siapakah adik kandung Rama yang setia menemani saat pengasingan?", a: ["Laksmana", "Barata", "Satrugna", "Sugriwa"], c: "Laksmana", h: "Ksatria yang ahli memanah dan sangat setia.", r: "Laksmana meninggalkan kemewahan istana demi melindungi kakaknya." } ] },
+    { title: "SAYEMBARA MANTILI", enemyName: "RAHWANA", enemyMaxHp: 450000, questions: [ { q: "Rama memenangkan Sinta setelah berhasil mematahkan pusaka apa?", a: ["Busur Gandewa", "Keris Kyai Jalak", "Batu Akik", "Pedang Naga"], c: "Busur Gandewa", h: "Senjata pusaka suci Dewa Siwa.", r: "Hanya titisan Wisnu yang sanggup mematahkan busur Gandewa milik Prabu Janaka." }, { q: "Siapakah tokoh tertua Punakawan titisan Sang Hyang Ismaya?", a: ["Semar", "Gareng", "Petruk", "Bagong"], c: "Semar", h: "Tokoh berwajah putih dan tubuh bulat.", r: "Semar adalah pamong para ksatria yang merupakan personifikasi dewa di bumi." }, { q: "Siapakah adik kandung Rama yang setia menemani saat pengasingan?", a: ["Laksmana", "Barata", "Satrugna", "Sugriwa"], c: "Laksmana", h: "Ksatria yang ahli memanah dan sangat setia.", r: "Laksmana meninggalkan kemewahan istana demi melindungi kakaknya." } ] },
     { title: "UJIAN FILOSOFI", enemyName: "KUMBAKARNA", enemyMaxHp: 600000, questions: [ { q: "Ciri fisik Gareng yang tangannya 'cekot' memiliki filosofi...", a: ["Tidak mengambil hak orang lain", "Suka memukul", "Suka sedekah", "Ahli senjata"], c: "Tidak mengambil hak orang lain", h: "Waspada terhadap barang milik orang lain.", r: "Tangan melengkung melambangkan kewaspadaan agar tidak mencuri." }, { q: "Mata Semar yang selalu terlihat sembab melambangkan...", a: ["Empati penderitaan dunia", "Rasa kantuk", "Kesedihan pribadi", "Kemarahan"], c: "Empati penderitaan dunia", h: "Menangis dalam senyuman.", r: "Matanya menangis karena empati mendalam pada nasib rakyat." } ] }
 ];
 
@@ -269,7 +338,7 @@ window.createFloatingText = (val, isHeal, xOffset) => {
 window.useHint = () => { playSFX($('sfx-confirm')); $('hint-text').innerText = "» " + window.database[window.gameState.level].questions[window.gameState.qIndex].h; };
 
 window.retryLevel = () => { 
-    fadeOutAudio($('sfx-petjah'), 500); // Fade out lose SFX
+    fadeOutAudio($('sfx-petjah'), 500);
     window.gameState.hp = 100000; 
     $('gameover-screen').style.display = 'none'; 
     $('audio-battle').volume = 1;
@@ -287,6 +356,12 @@ window.backToMenu = (fromScreen) => {
     $('gameover-screen').style.display = 'none'; 
     $('battle-screen').style.display = 'none'; 
     $('menu-screen').style.display = 'flex'; 
+    
+    // Reset Judul Animasi
+    $('main-title').classList.remove('title-animate');
+    void $('main-title').offsetWidth; // Trigger reflow
+    $('main-title').classList.add('title-animate');
+
     $('audio-battle').pause(); 
     $('audio-menu').play(); 
     if(window.gameState.userId) loadFromCloud(window.gameState.userId); 
@@ -298,8 +373,11 @@ window.showEnd = type => {
     $(type + '-screen').style.display = 'flex'; 
     
     if(type === 'victory') playSFX($('sfx-jayanti'), 1);
-    if(type === 'gameover') playSFX($('sfx-petjah'), 1); // Full volume for impactful loss
+    if(type === 'gameover') playSFX($('sfx-petjah'), 1);
 };
+
+// Start fire particles on load
+createFireParticles();
 
 const status = $('loading-status'); let loaded = 0; const total = Object.keys(ASSETS).length;
 Object.values(ASSETS).forEach(url => { const img = new Image(); img.onload = () => { loaded++; status.innerText = `MENYIAPKAN PUSAKA (${Math.floor((loaded/total)*100)}%)...`; if(loaded === total) { setTimeout(() => { $('loading-overlay').style.display = 'none'; $('audio-menu').play().catch(e => {}); }, 500); } }; img.src = url; });
