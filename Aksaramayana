@@ -82,13 +82,11 @@
         @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-120px); opacity: 0; } }
 
         #loading-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--gold); transition: opacity 0.5s; }
-        @keyframes screenFireFlash { 0% { opacity: 0; } 50% { opacity: 0.6; } 100% { opacity: 0; } }
     </style>
 </head>
 <body>
 <div id="loading-overlay"><div style="font-family: 'Cinzel'; font-size: 2rem; margin-bottom: 10px;">AKSARAMAYANA</div><div id="loading-status" style="font-size: 0.8rem; letter-spacing: 4px;">MEMUAT TAKDIR...</div></div>
 
-<!-- Story UI -->
 <div id="story-overlay">
     <div id="story-content">
         <h2 id="story-title">SERAT PURWAKA</h2>
@@ -162,55 +160,97 @@ const C = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_confi
       appId = typeof __app_id !== 'undefined' ? __app_id : 'aksara-ramayana-karaton',
       $ = id => document.getElementById(id);
 
-// --- Assets & Data ---
+// --- Assets ---
 const AS = {
     RAMA_IDLE: "https://i.postimg.cc/Dyw7bGvX/Rama_idle.png", RAMA_HURT: "https://i.postimg.cc/Dyw7bGvb/Rama_hurt.png", RAMA_DEAD: "https://i.postimg.cc/c4Ld83xg/Rama_dead.png", RAMA_ATTACK: "https://i.postimg.cc/BQnJ1FS8/Rama_attack.png",
     RAHWANA_IDLE: "https://i.postimg.cc/5N2fFz49/Rahwana_idle.png", RAHWANA_HURT: "https://i.postimg.cc/nVkHz2J9/Rahwana_hurt.png", RAHWANA_DEAD: "https://i.postimg.cc/HW2pxzgc/Rahwana_dead.png", RAHWANA_ATTACK: "https://i.postimg.cc/VsRY6g8J/Rahwana_attack.png",
-    JATAYU_IDLE: "https://i.postimg.cc/ZnVZMbcx/Jatayu_Idle.png", JATAYU_ATTACK: "https://i.postimg.cc/d34vxsB9/Jatayu_Attack.png", JATAYU_HURT: "https://i.postimg.cc/zDjJB71c/Jatayu_Hurt.png",
-    ANOMAN_IDLE: "https://i.postimg.cc/3wW4pNZL/Anoman_Idle.png", ANOMAN_ATTACK: "https://i.postimg.cc/QC0sy8bg/Anoman_Attack.png", ANOMAN_HURT: "https://i.postimg.cc/Zq0B3nL7/Anoman_Hurt.png",
     KUMBAKARNA_IDLE: "https://i.postimg.cc/05f8Qnsg/Kumbakarna_Idle.png", KUMBAKARNA_ATTACK: "https://i.postimg.cc/66093cNS/Kumbakarna_Attack.png", KUMBAKARNA_HURT: "https://i.postimg.cc/445JdPTr/Kumbakarna_Hurt.png", KUMBAKARNA_DEAD: "https://i.postimg.cc/wxV6v2dC/Kumbakarna_Dead.png",
     MARICA_IDLE: "https://i.postimg.cc/xjR0C52C/Marica_Idle.png", MARICA_ATTACK: "https://i.postimg.cc/QNbXtm3j/Marica_Attack.png", MARICA_HURT: "https://i.postimg.cc/pVZ2TCHd/Marica_Hurt.png", MARICA_DEAD: "https://i.postimg.cc/Wpn238vp/Marica_Dead.png"
 };
 
+// --- Massive Question DB (20+ Per Level) ---
 const DB = [
-    { title: "SAYEMBARA MANTILI", enemyKey: "RAHWANA", enemyName: "RAHWANA", enemyMaxHp: 450000, questions: [
-        { q: "Rama memenangkan Sinta setelah berhasil mematahkan pusaka apa?", a: ["Busur Gandewa", "Keris Kyai Jalak", "Batu Akik", "Pedang Naga"], c: "Busur Gandewa", h: "Senjata pusaka suci Dewa Siwa.", r: "Hanya titisan Wisnu yang sanggup mematahkan busur Gandewa milik Prabu Janaka." },
-        { q: "Siapakah tokoh tertua Punakawan titisan Sang Hyang Ismaya?", a: ["Semar", "Gareng", "Petruk", "Bagong"], c: "Semar", h: "Tokoh berwajah putih dan tubuh bulat.", r: "Semar adalah pamong para ksatria yang merupakan personifikasi dewa di bumi." },
-        { q: "Siapakah adik kandung Rama yang setia menemani saat pengasingan?", a: ["Laksmana", "Barata", "Satrugna", "Sugriwa"], c: "Laksmana", h: "Ksatria yang ahli memanah dan sangat setia.", r: "Laksmana meninggalkan kemewahan istana demi melindungi kakaknya." }
+    { title: "SAYEMBARA & PENGASINGAN", enemyKey: "RAHWANA", enemyName: "RAHWANA", enemyMaxHp: 800000, questions: [
+        { q: "Siapa ayah kandung Sri Rama dari Kerajaan Ayodhya?", a: ["Prabu Dasarata", "Prabu Janaka", "Prabu Pandu", "Prabu Salya"], c: "Prabu Dasarata", h: "Raja bijak Ayodhya yang memiliki tiga istri.", r: "Prabu Dasarata adalah ayah Rama yang terikat janji kepada Dewi Kekayi." },
+        { q: "Nama pusaka yang dipatahkan Rama dalam sayembara Mantili adalah...", a: ["Busur Gandewa", "Keris Pasopati", "Gada Rujakpolo", "Panah Sarotama"], c: "Busur Gandewa", h: "Pusaka suci peninggalan Dewa Siwa.", r: "Busur Gandewa hanya bisa diangkat dan dipatahkan oleh titisan Wisnu." },
+        { q: "Ibu kandung Sri Rama bernama...", a: ["Dewi Kausalya", "Dewi Kekayi", "Dewi Sumitra", "Dewi Gendari"], c: "Dewi Kausalya", h: "Istri pertama Prabu Dasarata.", r: "Dewi Kausalya melahirkan Rama sebagai putra mahkota pertama." },
+        { q: "Berapa tahun Rama harus menjalani pengasingan di hutan?", a: ["13 Tahun", "10 Tahun", "14 Tahun", "12 Tahun"], c: "14 Tahun", h: "Sesuai permintaan Dewi Kekayi.", r: "Pengasingan 14 tahun bertujuan agar Barata bisa naik takhta." },
+        { q: "Nama hutan tempat Rama, Sinta, dan Laksmana diasingkan adalah...", a: ["Hutan Dandaka", "Hutan Krendawahana", "Hutan Kamajaya", "Hutan Wanarta"], c: "Hutan Dandaka", h: "Hutan lebat tempat banyak raksasa bersembunyi.", r: "Hutan Dandaka menjadi saksi bisu penculikan Dewi Sinta." },
+        { q: "Siapa adik Rama yang meminta sandal Rama untuk diletakkan di takhta?", a: ["Barata", "Laksmana", "Satrugna", "Sugriwa"], c: "Barata", h: "Putra dari Dewi Kekayi yang sangat jujur.", r: "Barata memerintah atas nama sandal (paduka) Rama sebagai simbol kesetiaan." },
+        { q: "Wujud samaran raksasa Marica untuk memancing Rama adalah...", a: ["Kijang Kencana", "Burung Merak", "Harimau Putih", "Kupu-kupu Emas"], c: "Kijang Kencana", h: "Kijang berbulu emas yang sangat indah.", r: "Kijang Kencana adalah tipu muslihat Rahwana agar Rama menjauh dari Sinta." },
+        { q: "Laksmana membuat garis pelindung untuk Sinta yang disebut...", a: ["Laksmana Rekha", "Benteng Aji", "Pagar Gaib", "Cakra Sudarsana"], c: "Laksmana Rekha", h: "Garis yang tak bisa dilewati raksasa.", r: "Sinta diculik karena ia keluar dari garis pelindung tersebut demi memberi sedekah." },
+        { q: "Rahwana menyamar menjadi apa saat mendekati Sinta?", a: ["Pendeta Tua", "Pedagang Kain", "Kakek Renta", "Prajurit Terluka"], c: "Pendeta Tua", h: "Seorang Brahmana yang meminta sedekah.", r: "Penyamaran ini memanfaatkan sifat welas asih Dewi Sinta." },
+        { q: "Burung raksasa sahabat Dasarata yang menolong Sinta adalah...", a: ["Jatayu", "Sempati", "Garuda", "Wilmana"], c: "Jatayu", h: "Burung tua yang sayapnya diputus Rahwana.", r: "Jatayu bertarung habis-habisan namun gugur demi melindungi Sinta." },
+        { q: "Apa nama kerajaan milik Rahwana?", a: ["Alengka", "Ayodhya", "Mantili", "Kiskenda"], c: "Alengka", h: "Kerajaan megah di tengah samudera.", r: "Alengka dikenal sebagai negeri emas namun dipenuhi kegelapan angkara murka." },
+        { q: "Siapakah istri Rahwana yang juga ibu dari Indrajit?", a: ["Dewi Mandodari", "Dewi Shinta", "Dewi Sarpakenaka", "Dewi Widowati"], c: "Dewi Mandodari", h: "Wanita suci yang selalu menasihati Rahwana.", r: "Mandodari adalah istri setia yang sering menentang kejahatan Rahwana." },
+        { q: "Adik perempuan Rahwana yang hidungnya dipotong Laksmana adalah...", a: ["Sarpakenaka", "Trijata", "Mandodari", "Kekayi"], c: "Sarpakenaka", h: "Raksasa wanita yang menggoda Rama dan Laksmana.", r: "Kemarahan Sarpakenaka menjadi pemicu Rahwana menculik Sinta." },
+        { q: "Senjata sakti milik Laksmana adalah...", a: ["Panah Nagapasa", "Panah Surawijaya", "Keris Pulanggeni", "Gada Intan"], c: "Panah Surawijaya", h: "Panah yang sangat cepat dan akurat.", r: "Laksmana adalah pemanah ulung yang mendampingi Rama." },
+        { q: "Punakawan yang memiliki filosofi 'waspada' dengan mata juling adalah...", a: ["Gareng", "Semar", "Petruk", "Bagong"], c: "Gareng", h: "Matanya selalu melihat ke bawah dan waspada.", r: "Gareng mengajarkan kita untuk selalu hati-hati dalam melangkah." },
+        { q: "Filosofi tangan Gareng yang bengkok (cekot) adalah...", a: ["Tidak suka mencuri", "Ahli memanah", "Suka memberi", "Suka bekerja"], c: "Tidak suka mencuri", h: "Mengingatkan untuk tidak mengambil hak orang lain.", r: "Cekot melambangkan pantang mengambil milik orang lain (nyolong)." },
+        { q: "Siapa ksatria yang menemani Rama mencari Sinta di hutan?", a: ["Laksmana", "Barata", "Sugriwa", "Anoman"], c: "Laksmana", h: "Adik yang bersumpah tidak tidur selama 14 tahun.", r: "Kesetiaan Laksmana merupakan pilar kekuatan Sri Rama." },
+        { q: "Nama busur panah sakti milik Sri Rama adalah...", a: ["Panah Guwawijaya", "Panah Pasopati", "Panah Sarotama", "Panah Bramastra"], c: "Panah Guwawijaya", h: "Senjata pemungkas untuk mengalahkan Rahwana.", r: "Guwawijaya adalah senjata titisan dewa yang mampu menghancurkan kejahatan." },
+        { q: "Sinta dianggap sebagai titisan dewi siapa?", a: ["Dewi Widowati", "Dewi Sri", "Dewi Ratih", "Dewi Durga"], c: "Dewi Widowati", h: "Dewi kecantikan yang selalu diburu Rahwana.", r: "Rahwana mengejar Sinta karena yakin dia adalah Widowati yang bereinkarnasi." },
+        { q: "Apa arti nama 'Ramayana'?", a: ["Perjalanan Rama", "Kemenangan Rama", "Cinta Rama", "Keagungan Rama"], c: "Perjalanan Rama", h: "Ayana berarti perjalanan.", r: "Ramayana mengisahkan perjalanan hidup dan dharma Sri Rama." }
     ]},
-    { title: "UJIAN FILOSOFI", enemyKey: "KUMBAKARNA", enemyName: "KUMBAKARNA", enemyMaxHp: 600000, questions: [
-        { q: "Ciri fisik Gareng yang tangannya 'cekot' memiliki filosofi...", a: ["Tidak mengambil hak orang lain", "Suka memukul", "Suka sedekah", "Ahli senjata"], c: "Tidak mengambil hak orang lain", h: "Waspada terhadap barang milik orang lain.", r: "Tangan melengkung melambangkan kewaspadaan agar tidak mencuri." },
-        { q: "Mata Semar yang selalu terlihat sembab melambangkan...", a: ["Empati penderitaan dunia", "Rasa kantuk", "Kesedihan pribadi", "Kemarahan"], c: "Empati penderitaan dunia", h: "Menangis dalam senyuman.", r: "Matanya menangis karena empati mendalam pada nasib rakyat." }
+    { title: "PERANG BESAR ALENGKA", enemyKey: "KUMBAKARNA", enemyName: "KUMBAKARNA", enemyMaxHp: 1200000, questions: [
+        { q: "Raksasa yang tidur selama enam bulan adalah...", a: ["Kumbakarna", "Rahwana", "Indrajit", "Prahasta"], c: "Kumbakarna", h: "Adik Rahwana yang bertubuh gunung.", r: "Kumbakarna tidur panjang namun bangun demi membela tanah airnya." },
+        { q: "Apa motivasi Kumbakarna ikut berperang melawan Rama?", a: ["Membela Negara", "Membela Rahwana", "Mencari Ketenaran", "Ingin Makan"], c: "Membela Negara", h: "Nasionalisme sejati meski tahu kakaknya salah.", r: "Kumbakarna berperang demi Alengka, bukan demi membela kejahatan Rahwana." },
+        { q: "Siapa adik Rahwana yang memihak kepada Sri Rama?", a: ["Wibisana", "Kumbakarna", "Indrajit", "Marica"], c: "Wibisana", h: "Raksasa berhati ksatria yang bijaksana.", r: "Wibisana memilih jalan kebenaran (dharma) di atas ikatan keluarga." },
+        { q: "Nama kera putih utusan Rama ke Alengka adalah...", a: ["Anoman", "Sugriwa", "Subali", "Anggada"], c: "Anoman", h: "Putra Dewi Anjani yang bisa terbang.", r: "Anoman adalah duta agung yang membakar Alengka (Anoman Obong)." },
+        { q: "Raja Kera dari Kerajaan Kiskenda yang membantu Rama adalah...", a: ["Sugriwa", "Subali", "Anila", "Jembawan"], c: "Sugriwa", h: "Kera yang ditolong Rama merebut kembali takhtanya.", r: "Aliansi Rama dan Sugriwa membentuk pasukan Vanara yang sangat kuat." },
+        { q: "Anoman membakar Alengka setelah ditangkap oleh...", a: ["Indrajit", "Kumbakarna", "Prahasta", "Rahwana"], c: "Indrajit", h: "Putra mahkota Alengka yang ahli sihir.", r: "Indrajit menangkap Anoman dengan panah Nagapasa." },
+        { q: "Apa nama jembatan yang dibangun pasukan kera menuju Alengka?", a: ["Situbanda Layu", "Jembatan Ampera", "Sasak Galih", "Tambak Tirta"], c: "Situbanda Layu", h: "Jembatan batu melintasi samudera.", r: "Jembatan ini dibangun dengan bantuan Nala, kera arsitek yang sakti." },
+        { q: "Putra Rahwana yang memiliki kesaktian panah Nagapasa adalah...", a: ["Indrajit", "Trisirah", "Narantaka", "Dewayantaka"], c: "Indrajit", h: "Juga dikenal dengan nama Megananda.", r: "Indrajit adalah musuh paling berbahaya karena bisa menghilang di balik awan." },
+        { q: "Senjata Indrajit yang mengeluarkan ribuan ular adalah...", a: ["Panah Nagapasa", "Panah Pasopati", "Panah Cakrabaswara", "Gada Wesi"], c: "Panah Nagapasa", h: "Panah berwujud naga.", r: "Hanya burung Garuda (Sempati) yang bisa menawarkan racun Nagapasa." },
+        { q: "Siapa kera yang berhasil membunuh Prahasta, patih Alengka?", a: ["Anila", "Anoman", "Anggada", "Sugriwa"], c: "Anila", h: "Kera biru yang sangat lincah.", r: "Anila membunuh Prahasta dengan menimpakan tugu batu." },
+        { q: "Ksatria Alengka yang menjaga Sinta di taman Argasoka adalah...", a: ["Dewi Trijata", "Sarpakenaka", "Mandodari", "Widowati"], c: "Dewi Trijata", h: "Putri Wibisana yang berhati lembut.", r: "Trijata melindungi Sinta dari godaan dan ancaman Rahwana." },
+        { q: "Anoman adalah putra dari dewa apa?", a: ["Batara Bayu", "Batara Indra", "Batara Surya", "Batara Brahma"], c: "Batara Bayu", h: "Dewa penguasa angin.", r: "Anoman memiliki kekuatan angin yang membuatnya bisa melompat sangat jauh." },
+        { q: "Kera yang memiliki kesaktian bisa membelah diri menjadi banyak adalah...", a: ["Anoman", "Anggada", "Sugriwa", "Anila"], c: "Anoman", h: "Sering disebut 'Kapi Putih'.", r: "Kasekten Anoman termasuk 'Triwikrama' atau membesarkan tubuh jadi raksasa." },
+        { q: "Siapa ayah dari Anoman?", a: ["Batara Bayu", "Sugriwa", "Resi Gotama", "Subali"], c: "Batara Bayu", h: "Dewa Angin.", r: "Secara spiritual Anoman adalah putra Bayu, secara biologis putra Dewi Anjani." },
+        { q: "Rahwana memiliki ilmu 'Pancasona' yang membuatnya...", a: ["Tidak bisa mati", "Bisa terbang", "Bisa menghilang", "Kebal api"], c: "Tidak bisa mati", h: "Selama menyentuh tanah, dia akan hidup kembali.", r: "Ajian Pancasona membuat Rahwana hampir mustahil dikalahkan kecuali badannya dipisah." },
+        { q: "Kumbakarna gugur terkena panah Rama yang memutus...", a: ["Tangan dan Kakinya", "Kepalanya saja", "Jantungnya", "Matanya"], c: "Tangan dan Kakinya", h: "Rama memotong anggota tubuhnya satu per satu.", r: "Gugurnya Kumbakarna adalah salah satu momen paling mengharukan di Ramayana." },
+        { q: "Siapakah yang membunuh Indrajit dalam perang?", a: ["Laksmana", "Rama", "Anoman", "Wibisana"], c: "Laksmana", h: "Laksmana melakukan tapa brata khusus untuk ini.", r: "Laksmana berhasil memutus kepala Indrajit dengan panah Surawijaya." },
+        { q: "Apa nama taman tempat Sinta dikurung di Alengka?", a: ["Taman Argasoka", "Taman Kadilangu", "Taman Sari", "Taman Maerokoco"], c: "Taman Argasoka", h: "Hutan pohon Soka yang indah.", r: "Sinta menghabiskan waktu bertahun-tahun berdoa di bawah pohon Soka." },
+        { q: "Prajurit kera yang memimpin pembangunan jembatan adalah...", a: ["Nala", "Nila", "Jembawan", "Anila"], c: "Nala", h: "Kera yang memiliki sentuhan tangan ajaib.", r: "Nala adalah putra Dewa Wiswakarma, sang arsitek khayangan." },
+        { q: "Bagaimana cara Rama akhirnya mengalahkan Rahwana?", a: ["Dipanah lalu ditimbun gunung", "Dipenggal kepalanya", "Dibakar Anoman", "Tenggelam di laut"], c: "Dipanah lalu ditimbun gunung", h: "Gunung Sumawana menjepit tubuh Rahwana.", r: "Rama memanah Rahwana, lalu Anoman menimpakan gunung agar Rahwana tidak bisa hidup lagi." }
     ]}
 ];
 
-const L = [
-    "Dahulu, di Kerajaan Mantili, Sri Rama berhasil memenangkan sayembara agung dengan mematahkan busur Gandewa milik Dewa Siwa...",
-    "Kemenangan itu menyatukan takdirnya dengan Dewi Shinta, sang jelmaan kecantikan abadi.",
-    "Namun, di kegelapan Alengka, sang angkara murka Rahwana terbakar oleh obsesi masa lalu.",
-    "Bagi Rahwana, Shinta bukan sekadar wanita, melainkan titisan Dewi Widowati, kekasih lamanya yang ia dambakan kembali.",
-    "Melalui tipu muslihat Kijang Kencana, Rahwana berhasil menculik Shinta, membawa dunia ke ambang kehancuran.",
-    "Kini, Sri Rama memulai perjalanan panjangnya melintasi samudera dan hutan Dandaka demi merebut kembali sang kekasih..."
+// --- Logic ---
+const L_INTRO = [
+    "Dahulu, di Kerajaan Ayodhya, Sri Rama harus merelakan takhtanya demi sebuah janji agung...",
+    "Ia menjalani pengasingan di Hutan Dandaka bersama istrinya yang setia, Dewi Sinta.",
+    "Namun, angkara murka Rahwana mencabik kedamaian itu dengan tipu muslihat Kijang Kencana.",
+    "Kini, dengan bantuan pasukan Vanara, Sri Rama berdiri di hadapan gerbang Alengka.",
+    "Setiap anak panah yang ia lepaskan adalah doa untuk kebenaran...",
+    "Selamatkan Dewi Sinta, hancurkan kegelapan Alengka!"
 ];
 
-// --- Helpers ---
-const playSFX = (id, vol = 1) => { const a = $(id); if(a){ a.currentTime=0; a.volume=vol; a.play().catch(e=>{}); }};
+let S = { l:0, qi:0, hp:100000, mx:100000, ehp:0, emx:0, ek:"", ans:false, t:null, tl:10, uid:null };
+
+const playSFX = (id, vol = 1) => { const a=$(id); if(a){ a.currentTime=0; a.volume=vol; a.play().catch(()=>{}); }};
 const fadeAudio = (id, d = 1000) => { const a=$(id); if(!a || a.paused) return; const iv=a.volume, st=iv/(d/50); const t=setInterval(()=>{ if(a.volume>st) a.volume-=st; else { a.volume=0; a.pause(); a.volume=iv; clearInterval(t) } }, 50); };
 
-// --- Story Logic ---
-window.startNewJourney = () => { playSFX('sfx-confirm'); fadeAudio('audio-menu', 2000); $('menu-screen').style.display='none'; $('story-overlay').style.display='flex'; setTimeout(()=>{ $('story-title').style.opacity='1'; $('story-title').style.transform='translateY(0)'; playStory(); }, 1000); };
-const playStory = async () => { const el=$('story-text'); for(const line of L){ el.innerHTML=""; await typeEffect(el, line); await new Promise(r=>setTimeout(r, 2000)); if($('story-overlay').style.display==='none') return } $('skip-story-btn').style.opacity='1'; };
-const typeEffect = (el, t) => new Promise(r => { let i=0; const I=setInterval(()=>{ el.innerHTML=t.substring(0,i)+'<span class="cursor"></span>'; i++; if(i>t.length){ clearInterval(I); r(); } }, 40); });
+window.startNewJourney = () => { playSFX('sfx-confirm'); fadeAudio('audio-menu', 1500); $('menu-screen').style.display='none'; $('story-overlay').style.display='flex'; setTimeout(()=>{ $('story-title').style.opacity='1'; $('story-title').style.transform='translateY(0)'; playStory(); }, 800); };
+
+const playStory = async () => { 
+    const el=$('story-text'); 
+    for(const line of L_INTRO){ 
+        el.innerHTML=""; 
+        await typeEffect(el, line); 
+        await new Promise(r=>setTimeout(r, 1800)); 
+        if($('story-overlay').style.display==='none') return 
+    } 
+    $('skip-story-btn').style.opacity='1'; 
+};
+
+const typeEffect = (el, t) => new Promise(r => { let i=0; const I=setInterval(()=>{ el.innerHTML=t.substring(0,i)+'<span class="cursor"></span>'; i++; if(i>t.length){ clearInterval(I); r(); } }, 35); });
 window.endStory = () => { $('story-overlay').style.display='none'; window.startGame(true); };
 
-// --- Game State ---
-let S = { l:0, qi:0, hp:100000, mx:100000, ehp:300000, emx:300000, ek:"RAHWANA", ans:false, t:null, tl:10, uid:null };
-
-// --- Core Game Functions ---
 window.startGame = (n) => {
     if(n) { S.l=0; S.hp=S.mx; } else if(window.saveData) { S.l=window.saveData.l; S.hp=window.saveData.hp; }
     $('menu-screen').style.display='none'; $('battle-screen').style.display='flex';
-    $('player-img').src=AS.RAMA_IDLE; $('audio-battle').volume=1; playSFX('audio-battle', 1);
+    $('player-img').src=AS.RAMA_IDLE; playSFX('audio-battle', 0.8);
     loadLevel();
 };
 
@@ -222,16 +262,23 @@ window.loadLevel = () => {
     setTimeout(()=>{
         $('level-transition').classList.remove('active');
         S.qi=0; S.ek=d.enemyKey; S.emx=d.enemyMaxHp; S.ehp=S.emx;
-        $('enemy-name').innerText=d.enemyName; $('enemy-img').src=AS[S.ek+"_IDLE"]||AS.RAHWANA_IDLE;
+        $('enemy-name').innerText=d.enemyName; 
+        $('enemy-img').src=AS[S.ek+"_IDLE"] || AS.RAHWANA_IDLE;
         updateHP(); showQuestion(); saveCloud();
-    }, 2200);
+    }, 2500);
 };
 
 window.showQuestion = () => {
-    const d=DB[S.l]; if(!d)return;
-    S.ans=false; const q=d.questions[S.qi];
+    const d=DB[S.l]; if(!d) return;
+    S.ans=false; 
+    // Ambil soal secara acak agar setiap run terasa berbeda
+    if(S.qi === 0) d.questions.sort(() => Math.random() - 0.5);
+    
+    const q=d.questions[S.qi];
     $('quiz-content').style.display='block'; $('rationale-box').style.display='none';
-    $('question').innerText=q.q; $('level-title').innerText=`TINGKAT ${S.l+1} - SOAL ${S.qi+1}`; $('hint-text').innerText="";
+    $('question').innerText=q.q; 
+    $('level-title').innerText=`TINGKAT ${S.l+1} - SERANGAN ${S.qi+1} / ${d.questions.length}`; 
+    $('hint-text').innerText="";
     const g=$('options'); g.innerHTML='';
     [...q.a].sort(()=>Math.random()-0.5).forEach(v=>{
         const b=document.createElement('button'); b.className='opt-btn'; b.innerText=v;
@@ -240,21 +287,35 @@ window.showQuestion = () => {
     startTimer();
 };
 
-window.startTimer = () => { clearInterval(S.t); S.tl=10; const f=$('timer-fill'), t=$('timer-text'); S.t=setInterval(()=>{ S.tl-=0.1; t.innerText=Math.max(0,Math.ceil(S.tl)); f.style.width=(S.tl/10*100)+'%'; if(S.tl<=0){ clearInterval(S.t); takeDamage(20000); } }, 100); };
+window.startTimer = () => { clearInterval(S.t); S.tl=12; const f=$('timer-fill'), t=$('timer-text'); S.t=setInterval(()=>{ S.tl-=0.1; t.innerText=Math.max(0,Math.ceil(S.tl)); f.style.width=(S.tl/12*100)+'%'; if(S.tl<=0){ clearInterval(S.t); takeDamage(15000); } }, 100); };
 
 window.checkAnswer = (c) => {
     if(S.ans) return; S.ans=true; clearInterval(S.t);
-    if(c) { if(S.hp<S.mx){ S.hp=Math.min(S.mx, S.hp+S.mx*0.01); floatTxt(S.mx*0.01, true, -20); } attackEnemy(); } else takeDamage(25000);
+    if(c) { 
+        if(S.hp<S.mx){ S.hp=Math.min(S.mx, S.hp+2000); floatTxt(2000, true, -20); } 
+        attackEnemy(); 
+    } else takeDamage(18000);
 };
 
 window.attackEnemy = () => {
-    const d=DB[S.l], dmg=Math.floor(S.emx/d.questions.length)+5000, pi=$('player-img'), ei=$('enemy-img');
+    const d=DB[S.l];
+    // Perhitungan damage agar pas dengan jumlah soal
+    const baseDmg = Math.ceil(S.emx / d.questions.length);
+    const dmg = baseDmg + Math.floor(Math.random() * 2000);
+    
+    const pi=$('player-img'), ei=$('enemy-img');
     pi.src=AS.RAMA_ATTACK; pi.style.transform=`translateY(-20px) translateX(60px) scale(1.1)`;
     setTimeout(()=>{
-        S.ehp-=dmg; ei.src=S.ehp<=0?(AS[S.ek+"_DEAD"]||AS.RAHWANA_DEAD):(AS[S.ek+"_HURT"]||AS.RAHWANA_HURT);
+        S.ehp -= dmg; 
+        ei.src=S.ehp<=0?(AS[S.ek+"_DEAD"]||AS.RAHWANA_DEAD):(AS[S.ek+"_HURT"]||AS.RAHWANA_HURT);
         playSFX('sfx-hit-enemy'); createFX('enemy-img'); floatTxt(dmg, false, 20);
         $('game-container').classList.add('shake'); updateHP();
-        setTimeout(()=>{ pi.src=AS.RAMA_IDLE; pi.style.transform="none"; if(S.ehp>0) ei.src=AS[S.ek+"_IDLE"]||AS.RAHWANA_IDLE; $('game-container').classList.remove('shake'); showRationale(); }, 400);
+        setTimeout(()=>{ 
+            pi.src=AS.RAMA_IDLE; pi.style.transform="none"; 
+            if(S.ehp>0) ei.src=AS[S.ek+"_IDLE"]||AS.RAHWANA_IDLE; 
+            $('game-container').classList.remove('shake'); 
+            showRationale(); 
+        }, 400);
     }, 150);
 };
 
@@ -265,7 +326,12 @@ window.takeDamage = (dmg) => {
         pi.src=S.hp<=0?AS.RAMA_DEAD:AS.RAMA_HURT;
         playSFX('sfx-hit-player'); createFX('player-img'); floatTxt(dmg, false, -20);
         $('game-container').classList.add('shake'); updateHP();
-        setTimeout(()=>{ ei.src=AS[S.ek+"_IDLE"]||AS.RAHWANA_IDLE; ei.style.transform="none"; $('game-container').classList.remove('shake'); if(S.hp<=0) endGame('gameover'); else { pi.src=AS.RAMA_IDLE; showRationale(); } }, 400);
+        setTimeout(()=>{ 
+            ei.src=AS[S.ek+"_IDLE"]||AS.RAHWANA_IDLE; ei.style.transform="none"; 
+            $('game-container').classList.remove('shake'); 
+            if(S.hp<=0) endGame('gameover'); 
+            else { pi.src=AS.RAMA_IDLE; showRationale(); } 
+        }, 400);
     }, 200);
 };
 
@@ -277,13 +343,19 @@ window.showRationale = () => {
 
 window.nextAction = () => {
     playSFX('sfx-confirm');
-    if(S.ehp<=0) { S.l++; loadLevel(); return; }
-    S.qi=(S.qi+1)%DB[S.l].questions.length; showQuestion();
+    if(S.ehp<=0) { 
+        S.l++; 
+        if(S.l >= DB.length) endGame('victory');
+        else loadLevel(); 
+        return; 
+    }
+    S.qi++;
+    if(S.qi >= DB[S.l].questions.length) S.qi = 0; // Loop questions if needed, but HP logic should prevent this
+    showQuestion();
 };
 
-// --- VFX & Utils ---
 window.updateHP = () => {
-    $('player-hp').style.width=(S.hp/S.mx*100)+'%'; $('enemy-hp').style.width=(S.ehp/S.emx*100)+'%';
+    $('player-hp').style.width=(S.hp/S.mx*100)+'%'; $('enemy-hp').style.width=(Math.max(0,S.ehp)/S.emx*100)+'%';
     $('player-hp-text').innerText=`${Math.max(0,Math.floor(S.hp)).toLocaleString('id-ID')} / 100.000`;
     $('enemy-hp-text').innerText=`${Math.max(0,Math.floor(S.ehp)).toLocaleString('id-ID')} / ${S.emx.toLocaleString('id-ID')}`;
 };
@@ -303,46 +375,36 @@ window.floatTxt = (val, h, xOff) => {
 
 window.useHint = () => { playSFX('sfx-confirm'); $('hint-text').innerText="» "+DB[S.l].questions[S.qi].h; };
 
-// --- Endings & Menu ---
 window.endGame = (type) => { clearInterval(S.t); fadeAudio('audio-battle', 800); $(type+'-screen').style.display='flex'; playSFX(type==='victory'?'sfx-jayanti':'sfx-petjah', 1); };
-window.retryLevel = () => { fadeAudio('sfx-petjah', 500); S.hp=S.mx; $('gameover-screen').style.display='none'; playSFX('audio-battle', 1); loadLevel(); };
+window.retryLevel = () => { S.hp=S.mx; $('gameover-screen').style.display='none'; playSFX('audio-battle', 0.8); loadLevel(); };
 window.backToMenu = (fs) => { 
-    playSFX('sfx-back'); if(fs==='victory') fadeAudio('sfx-jayanti', 800); if(fs==='gameover') fadeAudio('sfx-petjah', 800); 
+    playSFX('sfx-back'); 
     clearInterval(S.t); $('victory-screen').style.display='none'; $('gameover-screen').style.display='none'; 
     $('battle-screen').style.display='none'; $('menu-screen').style.display='flex'; 
-    $('main-title').classList.remove('title-animate'); void $('main-title').offsetWidth; $('main-title').classList.add('title-animate');
     $('audio-battle').pause(); playSFX('audio-menu');
     if(S.uid) loadCloud(S.uid); 
 };
 
-// --- Firebase ---
 window.saveCloud = async () => { if(!S.uid) return; try { await setDoc(doc(db,'artifacts',appId,'users',S.uid,'saveData','progress'), { l:S.l, h:S.hp, t:new Date().toISOString() }, {merge:true}); } catch(e){} };
 const loadCloud = async uid => { const snap=await getDoc(doc(db,'artifacts',appId,'users',uid,'saveData','progress')); if(snap.exists()){ window.saveData=snap.data(); $('ui-resume').style.display='block'; $('cloud-status').innerText="Cloud Sync: Bab "+(window.saveData.l+1); } else $('cloud-status').innerText="Cloud Sync: Baru"; };
 onAuthStateChanged(auth, u => { if(u){ S.uid=u.uid; loadCloud(u.uid); } else signInAnonymously(auth); });
 
-// --- Initialization ---
+// Fire Background
 const createFire = () => {
     const c=$('fire-container'), cl=['#ff4500','#ff8c00','#ffcc00','#fff'];
-    for(let i=0;i<30;i++){
+    for(let i=0;i<35;i++){
         const s=document.createElement('div'); s.className='spark'; const z=Math.random()*4+2; s.style.width=z+'px'; s.style.height=z+'px';
         s.style.left=Math.random()*100+'%'; s.style.background=cl[Math.floor(Math.random()*4)]; s.style.setProperty('--duration',(Math.random()*3+2)+'s'); s.style.setProperty('--drift',(Math.random()*200-100)+'px'); s.style.animationDelay=Math.random()*5+'s'; c.appendChild(s);
     }
 };
 createFire();
 
-// Fast Loader
-let ld=0; const urls=Object.values(AS).filter(u=>u); 
-if(urls.length===0) $('loading-overlay').style.display='none';
-else {
-    // Preload images in background
-    urls.forEach(u=>{ const i=new Image(); i.src=u; });
-    // Fake load sequence (1.5s)
-    let p=0; const int=setInterval(()=>{
-        p+=Math.floor(Math.random()*15)+5; if(p>100) p=100;
-        $('loading-status').innerText=`MEMUAT TAKDIR... ${p}%`;
-        if(p===100){ clearInterval(int); $('loading-overlay').style.opacity=0; setTimeout(()=>{ $('loading-overlay').style.display='none'; playSFX('audio-menu'); }, 500); }
-    }, 100);
-}
+// Fake Loader
+let p=0; const int=setInterval(()=>{
+    p+=Math.floor(Math.random()*20)+5; if(p>100) p=100;
+    $('loading-status').innerText=`MEMUAT TAKDIR... ${p}%`;
+    if(p===100){ clearInterval(int); $('loading-overlay').style.opacity=0; setTimeout(()=>{ $('loading-overlay').style.display='none'; playSFX('audio-menu'); }, 500); }
+}, 80);
 </script>
 </body>
 </html>
