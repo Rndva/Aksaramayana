@@ -1,74 +1,101 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AksaRamayana - Karaton Edition</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
-<style>
-:root { --gold: #ffcc00; --dark: #2b1a0a; --b-gold: #b8860b; --paper: #f0e6d2; --glass: rgba(20, 10, 5, 0.85); --fr: #ff4500; --fo: #ff8c00; }
-* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Lato', sans-serif; background: #000; color: var(--paper); }
-h1, h2, .hp-label, #level-title, #continue-btn, .opt-btn, .hp-values, #timer-text, #transition-text, #story-title { font-family: 'Cinzel', serif; font-weight: 700; }
-#story-overlay { position: fixed; inset: 0; background: radial-gradient(circle, #2b1a0a 0%, #000 100%); z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 40px; text-align: center; }
-#story-content { max-width: 650px; min-height: 150px; position: relative; }
-#story-title { color: var(--gold); font-size: 1.8rem; margin-bottom: 25px; letter-spacing: 6px; text-shadow: 0 0 20px rgba(255,204,0,0.4); opacity: 0; transform: translateY(20px); transition: all 1s ease; }
-#story-text { font-size: 1.1rem; line-height: 1.8; color: #f0e6d2; margin-bottom: 40px; font-style: italic; min-height: 80px; }
-.cursor { display: inline-block; width: 10px; height: 3px; background: var(--gold); margin-left: 5px; animation: blink .8s infinite; vertical-align: middle; }
-@keyframes blink { 0%, 100% { opacity:1; } 50% { opacity: 0; } }
-@keyframes titleSlam { 0% { transform: scale(5); opacity: 0; filter: blur(20px); } 70% { transform: scale(0.9); opacity: 1; filter: blur(0); } 100% { transform: scale(1); opacity: 1; text-shadow: 0 0 30px var(--gold), 0 0 60px var(--fire-orange); } }
-.title-animate { animation: titleSlam 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
-#fire-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; pointer-events: none; z-index: 5; overflow: hidden; }
-.spark { position: absolute; background: var(--fo); border-radius: 50%; filter: blur(1px); animation: rise var(--duration) linear infinite; opacity: 0; }
-@keyframes rise { 0% { transform: translateY(100%) translateX(0); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-500px) translateX(var(--drift)); opacity: 0; } }
-#game-container { position: relative; width: 100vw; height: 100vh; background: #000; overflow: hidden; display: flex; flex-direction: column; }
-#screen-flash { position: absolute; inset: 0; background: radial-gradient(circle, var(--fo), var(--fr), transparent); opacity: 0; z-index: 1000; pointer-events: none; mix-blend-mode: overlay; }
-#battle-bg { position: absolute; inset: 0; background: url('https://i.postimg.cc/GmydcVwL/Battle.png') no-repeat center bottom; background-size: 140%; z-index: 1; transition: background-size 2s ease-out; }
-@media (max-width: 600px) { #battle-bg { background-size: 350%; } }
-#level-transition { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); z-index: 500; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
-#level-transition.active { opacity: 1; }
-#transition-content { text-align: center; border-top: 2px solid var(--gold); border-bottom: 2px solid var(--gold); padding: 40px 0; width: 100%; background: linear-gradient(90deg, transparent, rgba(184, 134, 11, 0.2), transparent); transform: scale(0.8); transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-#level-transition.active #transition-content { transform: scale(1); }
-#transition-text { color: var(--gold); font-size: clamp(1.5rem, 6vw, 2.5rem); margin: 0; letter-spacing: 5px; text-shadow: 0 0 15px rgba(255, 204, 0, 0.5); }
-#battle-screen { display: none; width: 100%; height: 100%; position: relative; z-index: 2; flex-direction: column; }
-.hud { display: flex; justify-content: space-between; padding: 20px 25px; width: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 20; gap: 20px; }
-.hp-container { position: relative; flex: 1; min-width: 120px; }
-.hp-bar-bg { height: 18px; background: rgba(0,0,0,0.7); border: 1px solid var(--b-gold); margin-top: 5px; border-radius: 4px; overflow: hidden; position: relative; }
-.hp-bar-fill { height: 100%; width: 100%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-#player-hp { background: linear-gradient(90deg, #b8860b, #ffcc00); }
-#enemy-hp { background: linear-gradient(90deg, #800000, #ff0000); }
-.hp-values { position: absolute; width: 100%; text-align: center; top: 0; left: 0; font-size: 0.65rem; line-height: 18px; color: white; letter-spacing: 1px; text-shadow: 1px 1px 2px black; pointer-events: none; z-index: 5; }
-.timer-wrapper { position: absolute; top: 90px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 25; }
-.timer-container { width: 100px; height: 4px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-bottom: 5px; }
-#timer-fill { height: 100%; width: 100%; background: var(--gold); }
-#timer-text { font-size: 2.5rem; color: white; text-shadow: 0 0 10px rgba(0,0,0,1); }
-.arena { position: absolute; bottom: 210px; left: 0; width: 100%; height: 38vh; display: flex; justify-content: center; align-items: flex-end; gap: 2%; pointer-events: none; z-index: 10; padding: 0 5%; }
-#player-img, #enemy-img { height: auto; max-height: 100%; max-width: 48%; transition: transform 0.2s ease-out, opacity 0.3s; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.9)); }
-.quiz-container { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 88%; max-width: 550px; background: var(--glass); backdrop-filter: blur(15px); padding: 12px 18px; border: 1px solid rgba(184, 134, 11, 0.7); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); z-index: 100; }
-#question { font-size: 0.95rem; text-align: center; margin-bottom: 12px; color: #fff; line-height: 1.3; text-shadow: 1px 1px 4px rgba(0,0,0,1); }
-.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.opt-btn { background: rgba(255,255,255,0.08); border: 1px solid var(--b-gold); color: var(--paper); padding: 10px; cursor: pointer; border-radius: 6px; font-size: 0.8rem; transition: all 0.2s; letter-spacing: 0.5px; outline: none; }
-.opt-btn:hover:not(:disabled) { background: var(--gold) !important; color: #000 !important; }
-#menu-screen { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('https://i.postimg.cc/WzYqPCRk/Menu.png'); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; padding: 20px; overflow: hidden; }
-.menu-btns { display: flex; flex-direction: column; gap: 12px; width: 260px; z-index: 10; }
-#gameover-screen, #victory-screen { display: none; position: absolute; inset: 0; backdrop-filter: blur(6px); flex-direction: column; justify-content: center; align-items: center; z-index: 300; animation: fadeIn 0.5s ease-out forwards; text-align: center; }
-#gameover-screen { background: rgba(40, 0, 0, 0.85); }
-#victory-screen { background: rgba(10, 5, 2, 0.9); }
-.shake { animation: shakeEffect 0.4s ease-in-out; }
-@keyframes shakeEffect { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-12px, 8px); } 50% { transform: translate(12px, -8px); } 75% { transform: translate(-12px, -8px); } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.explosion-fire { position: absolute; width: 150px; height: 150px; z-index: 2000; pointer-events: none; display: flex; justify-content: center; align-items: center; }
-.fire-core { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #fff 0%, #ffcc00 30%, #ff4500 60%, transparent 80%); border-radius: 50%; animation: fireBlast 0.5s ease-out forwards; }
-@keyframes fireBlast { 0% { transform: scale(0.2); opacity: 1; filter: brightness(2); } 100% { transform: scale(4); opacity: 0; filter: blur(10px); } }
-.floating-text { position: absolute; font-family: 'Cinzel', serif; font-weight: bold; font-size: 1.8rem; pointer-events: none; z-index: 120; animation: floatUp 1s ease-out forwards; text-shadow: 2px 2px 5px #000; }
-@keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-120px); opacity: 0; } }
-#loading-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--gold); transition: opacity 0.5s; }
-@keyframes screenFireFlash { 0% { opacity: 0; } 50% { opacity: 0.6; } 100% { opacity: 0; } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AksaRamayana - Karaton Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #ffcc00; --dark: #2b1a0a; --b-gold: #b8860b; --paper: #f0e6d2; --glass: rgba(20, 10, 5, 0.85); --fr: #ff4500; --fo: #ff8c00; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Lato', sans-serif; background: #000; color: var(--paper); }
+        h1, h2, .hp-label, #level-title, #continue-btn, .opt-btn, .hp-values, #timer-text, #transition-text, #story-title { font-family: 'Cinzel', serif; font-weight: 700; }
+
+        /* --- UI & Overlay --- */
+        #story-overlay { position: fixed; inset: 0; background: radial-gradient(circle, #2b1a0a 0%, #000 100%); z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 40px; text-align: center; }
+        #story-content { max-width: 650px; min-height: 150px; position: relative; }
+        #story-title { color: var(--gold); font-size: 1.8rem; margin-bottom: 25px; letter-spacing: 6px; text-shadow: 0 0 20px rgba(255,204,0,0.4); opacity: 0; transform: translateY(20px); transition: all 1s ease; }
+        #story-text { font-size: 1.1rem; line-height: 1.8; color: #f0e6d2; margin-bottom: 40px; font-style: italic; min-height: 80px; }
+        .cursor { display: inline-block; width: 10px; height: 3px; background: var(--gold); margin-left: 5px; animation: blink .8s infinite; vertical-align: middle; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- Main Animations --- */
+        @keyframes titleSlam { 0% { transform: scale(5); opacity: 0; filter: blur(20px); } 70% { transform: scale(0.9); opacity: 1; filter: blur(0); } 100% { transform: scale(1); opacity: 1; text-shadow: 0 0 30px var(--gold), 0 0 60px var(--fo); } }
+        .title-animate { animation: titleSlam 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+
+        /* --- Fire Particles --- */
+        #fire-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; pointer-events: none; z-index: 5; overflow: hidden; }
+        .spark { position: absolute; background: var(--fo); border-radius: 50%; filter: blur(1px); animation: rise var(--duration) linear infinite; opacity: 0; }
+        @keyframes rise { 0% { transform: translateY(100%) translateX(0); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-500px) translateX(var(--drift)); opacity: 0; } }
+
+        #game-container { position: relative; width: 100vw; height: 100vh; background: #000; overflow: hidden; display: flex; flex-direction: column; }
+        #screen-flash { position: absolute; inset: 0; background: radial-gradient(circle, var(--fo), var(--fr), transparent); opacity: 0; z-index: 1000; pointer-events: none; mix-blend-mode: overlay; }
+        #battle-bg { position: absolute; inset: 0; background: url('https://i.postimg.cc/GmydcVwL/Battle.png') no-repeat center bottom; background-size: 140%; z-index: 1; transition: background-size 2s ease-out; }
+        @media (max-width: 600px) { #battle-bg { background-size: 350%; } }
+
+        /* --- Transitions --- */
+        #level-transition { position: absolute; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 500; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+        #level-transition.active { opacity: 1; }
+        #transition-content { text-align: center; border-top: 2px solid var(--gold); border-bottom: 2px solid var(--gold); padding: 40px 0; width: 100%; background: linear-gradient(90deg, transparent, rgba(184, 134, 11, 0.2), transparent); transform: scale(0.8); transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #level-transition.active #transition-content { transform: scale(1); }
+        #transition-text { color: var(--gold); font-size: clamp(1.5rem, 6vw, 2.5rem); margin: 0; letter-spacing: 5px; text-shadow: 0 0 15px rgba(255, 204, 0, 0.5); }
+
+        #battle-screen { display: none; width: 100%; height: 100%; position: relative; z-index: 2; flex-direction: column; }
+        .hud { display: flex; justify-content: space-between; padding: 20px 25px; width: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 20; gap: 20px; }
+        .hp-container { position: relative; flex: 1; min-width: 120px; }
+        .hp-bar-bg { height: 18px; background: rgba(0,0,0,0.7); border: 1px solid var(--b-gold); margin-top: 5px; border-radius: 4px; overflow: hidden; position: relative; }
+        .hp-bar-fill { height: 100%; width: 100%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        #player-hp { background: linear-gradient(90deg, #b8860b, #ffcc00); }
+        #enemy-hp { background: linear-gradient(90deg, #800000, #ff0000); }
+        .hp-values { position: absolute; width: 100%; text-align: center; top: 0; left: 0; font-size: 0.65rem; line-height: 18px; color: white; letter-spacing: 1px; text-shadow: 1px 1px 2px black; pointer-events: none; z-index: 5; }
+
+        .timer-wrapper { position: absolute; top: 90px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 25; }
+        .timer-container { width: 100px; height: 4px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-bottom: 5px; }
+        #timer-fill { height: 100%; width: 100%; background: var(--gold); }
+        #timer-text { font-size: 2.5rem; color: white; text-shadow: 0 0 10px rgba(0,0,0,1); }
+
+        .arena { position: absolute; bottom: 210px; left: 0; width: 100%; height: 38vh; display: flex; justify-content: center; align-items: flex-end; gap: 2%; pointer-events: none; z-index: 10; padding: 0 5%; }
+        /* Optimasi Gambar: object-fit agar tidak gepeng */
+        #player-img, #enemy-img { height: auto; max-height: 100%; max-width: 48%; transition: transform 0.1s linear, opacity 0.2s; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.9)); object-fit: contain; }
+
+        .quiz-container { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 88%; max-width: 550px; background: var(--glass); backdrop-filter: blur(15px); padding: 12px 18px; border: 1px solid rgba(184, 134, 11, 0.7); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); z-index: 100; }
+        #question { font-size: 0.95rem; text-align: center; margin-bottom: 12px; color: #fff; line-height: 1.3; text-shadow: 1px 1px 4px rgba(0,0,0,1); }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .opt-btn { background: rgba(255,255,255,0.08); border: 1px solid var(--b-gold); color: var(--paper); padding: 10px; cursor: pointer; border-radius: 6px; font-size: 0.8rem; transition: all 0.2s; letter-spacing: 0.5px; outline: none; }
+        .opt-btn:hover:not(:disabled) { background: var(--gold) !important; color: #000 !important; }
+
+        #menu-screen { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('https://i.postimg.cc/WzYqPCRk/Menu.png'); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; padding: 20px; overflow: hidden; }
+        .menu-btns { display: flex; flex-direction: column; gap: 12px; width: 260px; z-index: 10; }
+
+        #gameover-screen, #victory-screen { display: none; position: absolute; inset: 0; backdrop-filter: blur(6px); flex-direction: column; justify-content: center; align-items: center; z-index: 300; animation: fadeIn 0.5s ease-out forwards; text-align: center; }
+        #gameover-screen { background: rgba(40, 0, 0, 0.85); }
+        #victory-screen { background: rgba(10, 5, 2, 0.9); }
+
+        .shake { animation: shakeEffect 0.4s ease-in-out; }
+        @keyframes shakeEffect { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-12px, 8px); } 50% { transform: translate(12px, -8px); } 75% { transform: translate(-12px, -8px); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .explosion-fire { position: absolute; width: 150px; height: 150px; z-index: 2000; pointer-events: none; display: flex; justify-content: center; align-items: center; }
+        .fire-core { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #fff 0%, #ffcc00 30%, #ff4500 60%, transparent 80%); border-radius: 50%; animation: fireBlast 0.5s ease-out forwards; }
+        @keyframes fireBlast { 0% { transform: scale(0.2); opacity: 1; filter: brightness(2); } 100% { transform: scale(4); opacity: 0; filter: blur(10px); } }
+
+        .floating-text { position: absolute; font-family: 'Cinzel', serif; font-weight: bold; font-size: 1.8rem; pointer-events: none; z-index: 120; animation: floatUp 1s ease-out forwards; text-shadow: 2px 2px 5px #000; }
+        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-120px); opacity: 0; } }
+
+        #loading-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--gold); transition: opacity 0.5s; }
+    </style>
 </head>
 <body>
-<div id="loading-overlay"><div style="font-family:'Cinzel';font-size:2rem;margin-bottom:10px">AKSARAMAYANA</div><div id="loading-status" style="font-size:0.8rem;letter-spacing:4px">MEMUAT PUSAKA...</div></div>
-<div id="story-overlay"><div id="story-content"><h2 id="story-title">SERAT PURWAKA</h2><div id="story-text"></div><button id="skip-story-btn" class="opt-btn" style="opacity:0;transition:opacity 1s;padding:12px 60px;margin:0 auto" onclick="endStory()">MULAI PERJUANGAN</button></div></div>
+<div id="loading-overlay"><div style="font-family: 'Cinzel'; font-size: 2rem; margin-bottom: 10px;">AKSARAMAYANA</div><div id="loading-status" style="font-size: 0.8rem; letter-spacing: 4px;">MEMUAT TAKDIR...</div></div>
+
+<div id="story-overlay">
+    <div id="story-content">
+        <h2 id="story-title">SERAT PURWAKA</h2>
+        <div id="story-text"></div>
+        <button id="skip-story-btn" class="opt-btn" style="opacity:0; transition:opacity 1s; padding: 12px 60px; margin: 0 auto;" onclick="endStory()">MULAI PERJUANGAN</button>
+    </div>
+</div>
+
 <audio id="audio-menu" loop preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/menu.mp3"></audio>
 <audio id="audio-battle" loop preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/97db58b5d604c46fce22d4622a35afe4c8764aa1/Epic%20Forge%20of%20the%20Gamelan.mp3"></audio>
 <audio id="sfx-confirm" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/confirm.wav"></audio>
@@ -78,134 +105,282 @@ h1, h2, .hp-label, #level-title, #continue-btn, .opt-btn, .hp-values, #timer-tex
 <audio id="sfx-hit-enemy" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/hit.wav"></audio>
 <audio id="sfx-jayanti" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/0b31405679cfa4c1fae72d499ed38332f6ea1bd5/win.mp3"></audio>
 <audio id="sfx-petjah" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/0b31405679cfa4c1fae72d499ed38332f6ea1bd5/lose.mp3"></audio>
-<div id="game-container"><div id="screen-flash"></div><div id="battle-bg"></div><div id="fire-container"></div><div id="level-transition"><div id="transition-content"><h2 id="transition-text">BAB 1</h2></div></div>
-<div id="menu-screen"><h1 id="main-title" class="title-animate" style="font-size:clamp(2.2rem,9vw,5.5rem);color:var(--gold);margin:0;text-align:center;z-index:10">AKSARAMAYANA</h1><p style="letter-spacing:8px;margin-bottom:35px;font-family:'Cinzel';font-size:1rem;opacity:0.9;color:#fff;text-shadow:0 0 10px #000;z-index:10">KARATON LEGACY</p><div class="menu-btns"><button class="opt-btn" onclick="startNewJourney()" id="ui-start">PERJALANAN BARU</button><button class="opt-btn" onclick="startGame(false)" id="ui-resume" style="display:none;border-color:#fff;background:rgba(255,255,255,0.1)">LANJUTKAN</button></div><p id="cloud-status" style="font-size:0.65rem;margin-top:20px;opacity:0.6;color:#fff;z-index:10">Cloud Sync: Menghubungkan...</p></div>
-<div id="battle-screen"><div class="hud"><div class="hp-container"><div class="hp-label" style="font-size:0.8rem;color:var(--gold)">SRI RAMA</div><div class="hp-bar-bg"><div id="player-hp" class="hp-bar-fill"></div><div id="player-hp-text" class="hp-values">100.000 / 100.000</div></div></div><div class="hp-container" style="text-align:right"><div id="enemy-name" class="hp-label" style="font-size:0.8rem;color:#ff4d4d">RAHWANA</div><div class="hp-bar-bg"><div id="enemy-hp" class="hp-bar-fill"></div><div id="enemy-hp-text" class="hp-values">300.000 / 300.000</div></div></div></div><div class="timer-wrapper"><div class="timer-container"><div id="timer-fill"></div></div><div id="timer-text">10</div></div><div class="arena" id="arena"><img src="" id="player-img" alt="Sri Rama"><img src="" id="enemy-img" alt="Musuh"></div><div class="quiz-container" id="quiz-ui"><div id="rationale-box" style="display:none;text-align:center"><div id="rationale-text" style="line-height:1.4;font-size:0.85rem;margin-bottom:10px;color:#fff"></div><button id="continue-btn" class="opt-btn" style="background:var(--gold);color:#000;border:none;padding:8px 25px" onclick="nextAction()">LANJUTKAN</button></div><div id="quiz-content"><div id="level-title" style="text-align:center;color:var(--gold);font-size:0.6rem;letter-spacing:2px;margin-bottom:5px;opacity:0.7">TINGKAT 1</div><div id="question">Memuat soal...</div><div id="options" class="options-grid"></div><div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center"><div id="hint-text" style="font-style:italic;font-size:0.65rem;color:#ccc"></div><button id="ui-hint" onclick="useHint()" style="background:none;border:1px solid var(--gold);color:var(--gold);padding:3px 8px;border-radius:4px;font-size:0.6rem;cursor:pointer">WISIK ISMAYA</button></div></div></div></div>
-<div id="victory-screen"><h1 style="color:var(--gold);font-size:3rem;text-shadow:0 0 20px gold">JAYANTI!</h1><p style="text-align:center;margin-bottom:20px">Anda telah memenangkan seluruh pertempuran Karaton.</p><button class="opt-btn" onclick="backToMenu('victory')">KEMBALI KE KERATON</button></div>
-<div id="gameover-screen"><h1 style="color:#ff0000;font-size:4rem;text-shadow:0 0 20px #000;margin:0">PEJAH</h1><p style="color:#fff;margin:10px 0 30px 0;font-family:'Cinzel';letter-spacing:2px;font-size:1.1rem">Gugur ing madyaning paprangan</p><button class="opt-btn" onclick="retryLevel()" style="background:#ff0000;color:white;border:none;padding:15px 40px;font-size:1.2rem;box-shadow:0 5px 15px rgba(0,0,0,0.5)">ULANGI PERJUANGAN</button><button class="opt-btn" onclick="backToMenu('gameover')" style="margin-top:15px;background:transparent;color:white;border:1px solid white">MENYERAH</button></div>
-</div>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-const C = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {}, app = initializeApp(C), auth = getAuth(app), db = getFirestore(app), appId = typeof __app_id !== 'undefined' ? __app_id : 'aksara-ramayana-karaton', $ = id => document.getElementById(id);
-const AS = { RAMA_IDLE: "https://i.postimg.cc/Dyw7bGvX/Rama_idle.png", RAMA_HURT: "https://i.postimg.cc/Dyw7bGvb/Rama_hurt.png", RAMA_DEAD: "https://i.postimg.cc/c4Ld83xg/Rama_dead.png", RAMA_ATTACK: "https://i.postimg.cc/BQnJ1FS8/Rama_attack.png", RAHWANA_IDLE: "https://i.postimg.cc/5N2fFz49/Rahwana_idle.png", RAHWANA_HURT: "https://i.postimg.cc/nVkHz2J9/Rahwana_hurt.png", RAHWANA_DEAD: "https://i.postimg.cc/HW2pxzgc/Rahwana_dead.png", RAHWANA_ATTACK: "https://i.postimg.cc/VsRY6g8J/Rahwana_attack.png", KUMBAKARNA_IDLE: "https://i.postimg.cc/05f8Qnsg/Kumbakarna_Idle.png", KUMBAKARNA_ATTACK: "https://i.postimg.cc/66093cNS/Kumbakarna_Attack.png", KUMBAKARNA_HURT: "https://i.postimg.cc/445JdPTr/Kumbakarna_Hurt.png", KUMBAKARNA_DEAD: "https://i.postimg.cc/wxV6v2dC/Kumbakarna_Dead.png", MARICA_IDLE: "https://i.postimg.cc/xjR0C52C/Marica_Idle.png", MARICA_ATTACK: "https://i.postimg.cc/QNbXtm3j/Marica_Attack.png", MARICA_HURT: "https://i.postimg.cc/pVZ2TCHd/Marica_Hurt.png", MARICA_DEAD: "https://i.postimg.cc/Wpn238vp/Marica_Dead.png" };
-const DB = [{ title: "SAYEMBARA & PENGASINGAN", enemyKey: "RAHWANA", enemyName: "RAHWANA", enemyMaxHp: 800000, questions: [{ q: "Siapa ayah kandung Sri Rama dari Kerajaan Ayodhya?", a: ["Prabu Dasarata", "Prabu Janaka", "Prabu Pandu", "Prabu Salya"], c: "Prabu Dasarata", h: "Raja bijak Ayodhya yang memiliki tiga istri.", r: "Prabu Dasarata adalah ayah Rama yang terikat janji kepada Dewi Kekayi." }, { q: "Nama pusaka yang dipatahkan Rama dalam sayembara Mantili adalah...", a: ["Busur Gandewa", "Keris Pasopati", "Gada Rujakpolo", "Panah Sarotama"], c: "Busur Gandewa", h: "Pusaka suci peninggalan Dewa Siwa.", r: "Busur Gandewa hanya bisa diangkat dan dipatahkan oleh titisan Wisnu." }, { q: "Ibu kandung Sri Rama bernama...", a: ["Dewi Kausalya", "Dewi Kekayi", "Dewi Sumitra", "Dewi Gendari"], c: "Dewi Kausalya", h: "Istri pertama Prabu Dasarata.", r: "Dewi Kausalya melahirkan Rama sebagai putra mahkota pertama." }, { q: "Berapa tahun Rama harus menjalani pengasingan di hutan?", a: ["13 Tahun", "10 Tahun", "14 Tahun", "12 Tahun"], c: "14 Tahun", h: "Sesuai permintaan Dewi Kekayi.", r: "Pengasingan 14 tahun bertujuan agar Barata bisa naik takhta." }, { q: "Nama hutan tempat Rama, Sinta, dan Laksmana diasingkan adalah...", a: ["Hutan Dandaka", "Hutan Krendawahana", "Hutan Kamajaya", "Hutan Wanarta"], c: "Hutan Dandaka", h: "Hutan lebat tempat banyak raksasa bersembunyi.", r: "Hutan Dandaka menjadi saksi bisu penculikan Dewi Sinta." }, { q: "Siapa adik Rama yang meminta sandal Rama untuk diletakkan di takhta?", a: ["Barata", "Laksmana", "Satrugna", "Sugriwa"], c: "Barata", h: "Putra dari Dewi Kekayi yang sangat jujur.", r: "Barata memerintah atas nama sandal (paduka) Rama sebagai simbol kesetiaan." }, { q: "Wujud samaran raksasa Marica untuk memancing Rama adalah...", a: ["Kijang Kencana", "Burung Merak", "Harimau Putih", "Kupu-kupu Emas"], c: "Kijang Kencana", h: "Kijang berbulu emas yang sangat indah.", r: "Kijang Kencana adalah tipu muslihat Rahwana agar Rama menjauh dari Sinta." }, { q: "Laksmana membuat garis pelindung untuk Sinta yang disebut...", a: ["Laksmana Rekha", "Benteng Aji", "Pagar Gaib", "Cakra Sudarsana"], c: "Laksmana Rekha", h: "Garis yang tak bisa dilewati raksasa.", r: "Sinta diculik karena ia keluar dari garis pelindung tersebut demi memberi sedekah." }, { q: "Rahwana menyamar menjadi apa saat mendekati Sinta?", a: ["Pendeta Tua", "Pedagang Kain", "Kakek Renta", "Prajurit Terluka"], c: "Pendeta Tua", h: "Seorang Brahmana yang meminta sedekah.", r: "Penyamaran ini memanfaatkan sifat welas asih Dewi Sinta." }, { q: "Burung raksasa sahabat Dasarata yang menolong Sinta adalah...", a: ["Jatayu", "Sempati", "Garuda", "Wilmana"], c: "Jatayu", h: "Burung tua yang sayapnya diputus Rahwana.", r: "Jatayu bertarung habis-habisan namun gugur demi melindungi Sinta." }, { q: "Apa nama kerajaan milik Rahwana?", a: ["Alengka", "Ayodhya", "Mantili", "Kiskenda"], c: "Alengka", h: "Kerajaan megah di tengah samudera.", r: "Alengka dikenal sebagai negeri emas namun dipenuhi kegelapan angkara murka." }, { q: "Siapakah istri Rahwana yang juga ibu dari Indrajit?", a: ["Dewi Mandodari", "Dewi Shinta", "Dewi Sarpakenaka", "Dewi Widowati"], c: "Dewi Mandodari", h: "Wanita suci yang selalu menasihati Rahwana.", r: "Mandodari adalah istri setia yang sering menentang kejahatan Rahwana." }, { q: "Adik perempuan Rahwana yang hidungnya dipotong Laksmana adalah...", a: ["Sarpakenaka", "Trijata", "Mandodari", "Kekayi"], c: "Sarpakenaka", h: "Raksasa wanita yang menggoda Rama dan Laksmana.", r: "Kemarahan Sarpakenaka menjadi pemicu Rahwana menculik Sinta." }, { q: "Senjata sakti milik Laksmana adalah...", a: ["Panah Nagapasa", "Panah Surawijaya", "Keris Pulanggeni", "Gada Intan"], c: "Panah Surawijaya", h: "Panah yang sangat cepat dan akurat.", r: "Laksmana adalah pemanah ulung yang mendampingi Rama." }, { q: "Punakawan yang memiliki filosofi 'waspada' dengan mata juling adalah...", a: ["Gareng", "Semar", "Petruk", "Bagong"], c: "Gareng", h: "Matanya selalu melihat ke bawah dan waspada.", r: "Gareng mengajarkan kita untuk selalu hati-hati dalam melangkah." }, { q: "Filosofi tangan Gareng yang bengkok (cekot) adalah...", a: ["Tidak suka mencuri", "Ahli memanah", "Suka memberi", "Suka bekerja"], c: "Tidak suka mencuri", h: "Mengingatkan untuk tidak mengambil hak orang lain.", r: "Cekot melambangkan pantang mengambil milik orang lain (nyolong)." }, { q: "Siapa ksatria yang menemani Rama mencari Sinta di hutan?", a: ["Laksmana", "Barata", "Sugriwa", "Anoman"], c: "Laksmana", h: "Adik yang bersumpah tidak tidur selama 14 tahun.", r: "Kesetiaan Laksmana merupakan pilar kekuatan Sri Rama." }, { q: "Nama busur panah sakti milik Sri Rama adalah...", a: ["Panah Guwawijaya", "Panah Pasopati", "Panah Sarotama", "Panah Bramastra"], c: "Panah Guwawijaya", h: "Senjata pemungkas untuk mengalahkan Rahwana.", r: "Guwawijaya adalah senjata titisan dewa yang mampu menghancurkan kejahatan." }, { q: "Sinta dianggap sebagai titisan dewi siapa?", a: ["Dewi Widowati", "Dewi Sri", "Dewi Ratih", "Dewi Durga"], c: "Dewi Widowati", h: "Dewi kecantikan yang selalu diburu Rahwana.", r: "Rahwana mengejar Sinta karena yakin dia adalah Widowati yang bereinkarnasi." }, { q: "Apa arti nama 'Ramayana'?", a: ["Perjalanan Rama", "Kemenangan Rama", "Cinta Rama", "Keagungan Rama"], c: "Perjalanan Rama", h: "Ayana berarti perjalanan.", r: "Ramayana mengisahkan perjalanan hidup dan dharma Sri Rama." }]}, { title: "PERANG BESAR ALENGKA", enemyKey: "KUMBAKARNA", enemyName: "KUMBAKARNA", enemyMaxHp: 1200000, questions: [{ q: "Raksasa yang tidur selama enam bulan adalah...", a: ["Kumbakarna", "Rahwana", "Indrajit", "Prahasta"], c: "Kumbakarna", h: "Adik Rahwana yang bertubuh gunung.", r: "Kumbakarna tidur panjang namun bangun demi membela tanah airnya." }, { q: "Apa motivasi Kumbakarna ikut berperang melawan Rama?", a: ["Membela Negara", "Membela Rahwana", "Mencari Ketenaran", "Ingin Makan"], c: "Membela Negara", h: "Nasionalisme sejati meski tahu kakaknya salah.", r: "Kumbakarna berperang demi Alengka, bukan demi membela kejahatan Rahwana." }, { q: "Siapa adik Rahwana yang memihak kepada Sri Rama?", a: ["Wibisana", "Kumbakarna", "Indrajit", "Marica"], c: "Wibisana", h: "Raksasa berhati ksatria yang bijaksana.", r: "Wibisana memilih jalan kebenaran (dharma) di atas ikatan keluarga." }, { q: "Nama kera putih utusan Rama ke Alengka adalah...", a: ["Anoman", "Sugriwa", "Subali", "Anggada"], c: "Anoman", h: "Putra Dewi Anjani yang bisa terbang.", r: "Anoman adalah duta agung yang membakar Alengka (Anoman Obong)." }, { q: "Raja Kera dari Kerajaan Kiskenda yang membantu Rama adalah...", a: ["Sugriwa", "Subali", "Anila", "Jembawan"], c: "Sugriwa", h: "Kera yang ditolong Rama merebut kembali takhtanya.", r: "Aliansi Rama dan Sugriwa membentuk pasukan Vanara yang sangat kuat." }, { q: "Anoman membakar Alengka setelah ditangkap oleh...", a: ["Indrajit", "Kumbakarna", "Prahasta", "Rahwana"], c: "Indrajit", h: "Putra mahkota Alengka yang ahli sihir.", r: "Indrajit menangkap Anoman dengan panah Nagapasa." }, { q: "Apa nama jembatan yang dibangun pasukan kera menuju Alengka?", a: ["Situbanda Layu", "Jembatan Ampera", "Sasak Galih", "Tambak Tirta"], c: "Situbanda Layu", h: "Jembatan batu melintasi samudera.", r: "Jembatan ini dibangun dengan bantuan Nala, kera arsitek yang sakti." }, { q: "Putra Rahwana yang memiliki kesaktian panah Nagapasa adalah...", a: ["Indrajit", "Trisirah", "Narantaka", "Dewayantaka"], c: "Indrajit", h: "Juga dikenal dengan nama Megananda.", r: "Indrajit adalah musuh paling berbahaya karena bisa menghilang di balik awan." }, { q: "Senjata Indrajit yang mengeluarkan ribuan ular adalah...", a: ["Panah Nagapasa", "Panah Pasopati", "Panah Cakrabaswara", "Gada Wesi"], c: "Panah Nagapasa", h: "Panah berwujud naga.", r: "Hanya burung Garuda (Sempati) yang bisa menawarkan racun Nagapasa." }, { q: "Siapa kera yang berhasil membunuh Prahasta, patih Alengka?", a: ["Anila", "Anoman", "Anggada", "Sugriwa"], c: "Anila", h: "Kera biru yang sangat lincah.", r: "Anila membunuh Prahasta dengan menimpakan tugu batu." }, { q: "Ksatria Alengka yang menjaga Sinta di taman Argasoka adalah...", a: ["Dewi Trijata", "Sarpakenaka", "Mandodari", "Widowati"], c: "Dewi Trijata", h: "Putri Wibisana yang berhati lembut.", r: "Trijata melindungi Sinta dari godaan dan ancaman Rahwana." }, { q: "Anoman adalah putra dari dewa apa?", a: ["Batara Bayu", "Batara Indra", "Batara Surya", "Batara Brahma"], c: "Batara Bayu", h: "Dewa penguasa angin.", r: "Anoman memiliki kekuatan angin yang membuatnya bisa melompat sangat jauh." }, { q: "Kera yang memiliki kesaktian bisa membelah diri menjadi banyak adalah...", a: ["Anoman", "Anggada", "Sugriwa", "Anila"], c: "Anoman", h: "Sering disebut 'Kapi Putih'.", r: "Kasekten Anoman termasuk 'Triwikrama' atau membesarkan tubuh jadi raksasa." }, { q: "Siapa ayah dari Anoman?", a: ["Batara Bayu", "Sugriwa", "Resi Gotama", "Subali"], c: "Batara Bayu", h: "Dewa Angin.", r: "Secara spiritual Anoman adalah putra Bayu, secara biologis putra Dewi Anjani." }, { q: "Rahwana memiliki ilmu 'Pancasona' yang membuatnya...", a: ["Tidak bisa mati", "Bisa terbang", "Bisa menghilang", "Kebal api"], c: "Tidak bisa mati", h: "Selama menyentuh tanah, dia akan hidup kembali.", r: "Ajian Pancasona membuat Rahwana hampir mustahil dikalahkan kecuali badannya dipisah." }, { q: "Kumbakarna gugur terkena panah Rama yang memutus...", a: ["Tangan dan Kakinya", "Kepalanya saja", "Jantungnya", "Matanya"], c: "Tangan dan Kakinya", h: "Rama memotong anggota tubuhnya satu per satu.", r: "Gugurnya Kumbakarna adalah salah satu momen paling mengharukan di Ramayana." }, { q: "Siapakah yang membunuh Indrajit dalam perang?", a: ["Laksmana", "Rama", "Anoman", "Wibisana"], c: "Laksmana", h: "Laksmana melakukan tapa brata khusus untuk ini.", r: "Laksmana berhasil memutus kepala Indrajit dengan panah Surawijaya." }, { q: "Apa nama taman tempat Sinta dikurung di Alengka?", a: ["Taman Argasoka", "Taman Kadilangu", "Taman Sari", "Taman Maerokoco"], c: "Taman Argasoka", h: "Hutan pohon Soka yang indah.", r: "Sinta menghabiskan waktu bertahun-tahun berdoa di bawah pohon Soka." }, { q: "Prajurit kera yang memimpin pembangunan jembatan adalah...", a: ["Nala", "Nila", "Jembawan", "Anila"], c: "Nala", h: "Kera yang memiliki sentuhan tangan ajaib.", r: "Nala adalah putra Dewa Wiswakarma, sang arsitek khayangan." }, { q: "Bagaimana cara Rama akhirnya mengalahkan Rahwana?", a: ["Dipanah lalu ditimbun gunung", "Dipenggal kepalanya", "Dibakar Anoman", "Tenggelam di laut"], c: "Dipanah lalu ditimbun gunung", h: "Gunung Sumawana menjepit tubuh Rahwana.", r: "Rama memanah Rahwana, lalu Anoman menimpakan gunung agar Rahwana tidak bisa hidup lagi." }]}];
-const L_INTRO = ["Dahulu, di Kerajaan Ayodhya, Sri Rama harus merelakan takhtanya demi sebuah janji agung...", "Ia menjalani pengasingan di Hutan Dandaka bersama istrinya yang setia, Dewi Sinta.", "Namun, angkara murka Rahwana mencabik kedamaian itu dengan tipu muslihat Kijang Kencana.", "Kini, dengan bantuan pasukan Vanara, Sri Rama berdiri di hadapan gerbang Alengka.", "Setiap anak panah yang ia lepaskan adalah doa untuk kebenaran...", "Selamatkan Dewi Sinta, hancurkan kegelapan Alengka!"];
-let S = { l:0, qi:0, hp:100000, mx:100000, ehp:0, emx:0, ek:"", ans:false, t:null, tl:10, uid:null };
 
-// --- IMAGE PRELOADER (FIX) ---
-const IMG_CACHE = {};
-const preloadAssets = async () => {
-    let loaded = 0;
-    const keys = Object.keys(AS);
-    const total = keys.length;
+<div id="game-container">
+    <div id="screen-flash"></div><div id="battle-bg"></div>
+    <div id="fire-container"></div>
+    <div id="level-transition"><div id="transition-content"><h2 id="transition-text">BAB 1</h2></div></div>
     
-    keys.forEach(k => {
-        const img = new Image();
-        img.src = AS[k];
-        IMG_CACHE[k] = img; // Store in cache
-        img.onload = () => { loaded++; updateLoader(loaded, total); };
-        img.onerror = () => { loaded++; updateLoader(loaded, total); console.warn('Gagal memuat:', k); }; // Proceed even if one fails
+    <div id="menu-screen">
+        <h1 id="main-title" class="title-animate" style="font-size: clamp(2.2rem, 9vw, 5.5rem); color: var(--gold); margin: 0; text-align: center; z-index: 10;">AKSARAMAYANA</h1>
+        <p style="letter-spacing: 8px; margin-bottom: 35px; font-family: 'Cinzel'; font-size: 1rem; opacity: 0.9; color: #fff; text-shadow: 0 0 10px #000; z-index: 10;">KARATON LEGACY</p>
+        <div class="menu-btns">
+            <button class="opt-btn" onclick="startNewJourney()" id="ui-start">PERJALANAN BARU</button>
+            <button class="opt-btn" onclick="startGame(false)" id="ui-resume" style="display:none; border-color: #fff; background: rgba(255,255,255,0.1);">LANJUTKAN</button>
+        </div>
+        <p id="cloud-status" style="font-size: 0.65rem; margin-top: 20px; opacity: 0.6; color: #fff; z-index: 10;">Cloud Sync: Menghubungkan...</p>
+    </div>
+
+    <div id="battle-screen">
+        <div class="hud">
+            <div class="hp-container"><div class="hp-label" style="font-size: 0.8rem; color: var(--gold);">SRI RAMA</div><div class="hp-bar-bg"><div id="player-hp" class="hp-bar-fill"></div><div id="player-hp-text" class="hp-values">100.000 / 100.000</div></div></div>
+            <div class="hp-container" style="text-align: right;"><div id="enemy-name" class="hp-label" style="font-size: 0.8rem; color: #ff4d4d;">RAHWANA</div><div class="hp-bar-bg"><div id="enemy-hp" class="hp-bar-fill"></div><div id="enemy-hp-text" class="hp-values">300.000 / 300.000</div></div></div>
+        </div>
+        <div class="timer-wrapper"><div class="timer-container"><div id="timer-fill"></div></div><div id="timer-text">10</div></div>
+        <div class="arena" id="arena"><img src="" id="player-img" alt="Sri Rama"><img src="" id="enemy-img" alt="Musuh"></div>
+        <div class="quiz-container" id="quiz-ui">
+            <div id="rationale-box" style="display: none; text-align: center;">
+                <div id="rationale-text" style="line-height: 1.4; font-size: 0.85rem; margin-bottom: 10px; color: #fff;"></div>
+                <button id="continue-btn" class="opt-btn" style="background: var(--gold); color: #000; border:none; padding: 8px 25px;" onclick="nextAction()">LANJUTKAN</button>
+            </div>
+            <div id="quiz-content">
+                <div id="level-title" style="text-align:center; color: var(--gold); font-size: 0.6rem; letter-spacing: 2px; margin-bottom: 5px; opacity: 0.7;">TINGKAT 1</div>
+                <div id="question">Memuat soal...</div>
+                <div id="options" class="options-grid"></div>
+                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div id="hint-text" style="font-style: italic; font-size: 0.65rem; color: #ccc;"></div>
+                    <button id="ui-hint" onclick="useHint()" style="background:none; border: 1px solid var(--gold); color: var(--gold); padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; cursor: pointer;">WISIK ISMAYA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="victory-screen"><h1 style="color: var(--gold); font-size: 3rem; text-shadow: 0 0 20px gold;">JAYANTI!</h1><p style="text-align:center; margin-bottom: 20px;">Anda telah memenangkan seluruh pertempuran Karaton.</p><button class="opt-btn" onclick="backToMenu('victory')">KEMBALI KE KERATON</button></div>
+    <div id="gameover-screen"><h1 style="color: #ff0000; font-size: 4rem; text-shadow: 0 0 20px #000; margin: 0;">PEJAH</h1><p style="color: #fff; margin: 10px 0 30px 0; font-family: 'Cinzel'; letter-spacing: 2px; font-size: 1.1rem;">Gugur ing madyaning paprangan</p><button class="opt-btn" onclick="retryLevel()" style="background: #ff0000; color: white; border: none; padding: 15px 40px; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">ULANGI PERJUANGAN</button><button class="opt-btn" onclick="backToMenu('gameover')" style="margin-top:15px; background: transparent; color: white; border: 1px solid white;">MENYERAH</button></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+
+const C = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {},
+      app = initializeApp(C), 
+      auth = getAuth(app), 
+      db = getFirestore(app), 
+      appId = typeof __app_id !== 'undefined' ? __app_id : 'aksara-ramayana-karaton',
+      $ = id => document.getElementById(id);
+
+// --- Assets ---
+const AS = {
+    R: { i:"https://i.postimg.cc/Dyw7bGvX/Rama_idle.png", h:"https://i.postimg.cc/Dyw7bGvb/Rama_hurt.png", d:"https://i.postimg.cc/c4Ld83xg/Rama_dead.png", a:"https://i.postimg.cc/BQnJ1FS8/Rama_attack.png" },
+    H: { i:"https://i.postimg.cc/5N2fFz49/Rahwana_idle.png", h:"https://i.postimg.cc/nVkHz2J9/Rahwana_hurt.png", d:"https://i.postimg.cc/HW2pxzgc/Rahwana_dead.png", a:"https://i.postimg.cc/VsRY6g8J/Rahwana_attack.png" },
+    K: { i:"https://i.postimg.cc/05f8Qnsg/Kumbakarna_Idle.png", a:"https://i.postimg.cc/66093cNS/Kumbakarna_Attack.png", h:"https://i.postimg.cc/445JdPTr/Kumbakarna_Hurt.png", d:"https://i.postimg.cc/wxV6v2dC/Kumbakarna_Dead.png" },
+    M: { i:"https://i.postimg.cc/xjR0C52C/Marica_Idle.png", a:"https://i.postimg.cc/QNbXtm3j/Marica_Attack.png", h:"https://i.postimg.cc/pVZ2TCHd/Marica_Hurt.png", d:"https://i.postimg.cc/Wpn238vp/Marica_Dead.png" }
+};
+
+// --- OPTIMASI: PRELOAD ASSETS (Fix Delay/Broken Images) ---
+const preloadAssets = () => {
+    Object.values(AS).forEach(char => {
+        Object.values(char).forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
     });
 };
+preloadAssets(); // Jalankan otomatis di awal script
 
-const updateLoader = (c, t) => {
-    $('loading-status').innerText = `MEMUAT PUSAKA... ${Math.floor(c/t*100)}%`;
-    if(c >= t) {
-        setTimeout(() => {
-            $('loading-overlay').style.opacity = '0';
-            setTimeout(() => { $('loading-overlay').style.display='none'; playSFX('audio-menu'); }, 500);
-        }, 500);
-    }
-};
+// --- Question DB (Compressed Keys) ---
+const DB = [
+    { t: "SAYEMBARA & PENGASINGAN", k: "H", n: "RAHWANA", mx: 800000, q: [
+        { q: "Siapa ayah kandung Sri Rama dari Kerajaan Ayodhya?", a: ["Prabu Dasarata", "Prabu Janaka", "Prabu Pandu", "Prabu Salya"], c: "Prabu Dasarata", h: "Raja bijak Ayodhya yang memiliki tiga istri.", r: "Prabu Dasarata adalah ayah Rama yang terikat janji kepada Dewi Kekayi." },
+        { q: "Nama pusaka yang dipatahkan Rama dalam sayembara Mantili adalah...", a: ["Busur Gandewa", "Keris Pasopati", "Gada Rujakpolo", "Panah Sarotama"], c: "Busur Gandewa", h: "Pusaka suci peninggalan Dewa Siwa.", r: "Busur Gandewa hanya bisa diangkat dan dipatahkan oleh titisan Wisnu." },
+        { q: "Ibu kandung Sri Rama bernama...", a: ["Dewi Kausalya", "Dewi Kekayi", "Dewi Sumitra", "Dewi Gendari"], c: "Dewi Kausalya", h: "Istri pertama Prabu Dasarata.", r: "Dewi Kausalya melahirkan Rama sebagai putra mahkota pertama." },
+        { q: "Berapa tahun Rama harus menjalani pengasingan di hutan?", a: ["13 Tahun", "10 Tahun", "14 Tahun", "12 Tahun"], c: "14 Tahun", h: "Sesuai permintaan Dewi Kekayi.", r: "Pengasingan 14 tahun bertujuan agar Barata bisa naik takhta." },
+        { q: "Nama hutan tempat Rama, Sinta, dan Laksmana diasingkan adalah...", a: ["Hutan Dandaka", "Hutan Krendawahana", "Hutan Kamajaya", "Hutan Wanarta"], c: "Hutan Dandaka", h: "Hutan lebat tempat banyak raksasa bersembunyi.", r: "Hutan Dandaka menjadi saksi bisu penculikan Dewi Sinta." },
+        { q: "Siapa adik Rama yang meminta sandal Rama untuk diletakkan di takhta?", a: ["Barata", "Laksmana", "Satrugna", "Sugriwa"], c: "Barata", h: "Putra dari Dewi Kekayi yang sangat jujur.", r: "Barata memerintah atas nama sandal (paduka) Rama sebagai simbol kesetiaan." },
+        { q: "Wujud samaran raksasa Marica untuk memancing Rama adalah...", a: ["Kijang Kencana", "Burung Merak", "Harimau Putih", "Kupu-kupu Emas"], c: "Kijang Kencana", h: "Kijang berbulu emas yang sangat indah.", r: "Kijang Kencana adalah tipu muslihat Rahwana agar Rama menjauh dari Sinta." },
+        { q: "Laksmana membuat garis pelindung untuk Sinta yang disebut...", a: ["Laksmana Rekha", "Benteng Aji", "Pagar Gaib", "Cakra Sudarsana"], c: "Laksmana Rekha", h: "Garis yang tak bisa dilewati raksasa.", r: "Sinta diculik karena ia keluar dari garis pelindung tersebut demi memberi sedekah." },
+        { q: "Rahwana menyamar menjadi apa saat mendekati Sinta?", a: ["Pendeta Tua", "Pedagang Kain", "Kakek Renta", "Prajurit Terluka"], c: "Pendeta Tua", h: "Seorang Brahmana yang meminta sedekah.", r: "Penyamaran ini memanfaatkan sifat welas asih Dewi Sinta." },
+        { q: "Burung raksasa sahabat Dasarata yang menolong Sinta adalah...", a: ["Jatayu", "Sempati", "Garuda", "Wilmana"], c: "Jatayu", h: "Burung tua yang sayapnya diputus Rahwana.", r: "Jatayu bertarung habis-habisan namun gugur demi melindungi Sinta." },
+        { q: "Apa nama kerajaan milik Rahwana?", a: ["Alengka", "Ayodhya", "Mantili", "Kiskenda"], c: "Alengka", h: "Kerajaan megah di tengah samudera.", r: "Alengka dikenal sebagai negeri emas namun dipenuhi kegelapan angkara murka." },
+        { q: "Siapakah istri Rahwana yang juga ibu dari Indrajit?", a: ["Dewi Mandodari", "Dewi Shinta", "Dewi Sarpakenaka", "Dewi Widowati"], c: "Dewi Mandodari", h: "Wanita suci yang selalu menasihati Rahwana.", r: "Mandodari adalah istri setia yang sering menentang kejahatan Rahwana." },
+        { q: "Adik perempuan Rahwana yang hidungnya dipotong Laksmana adalah...", a: ["Sarpakenaka", "Trijata", "Mandodari", "Kekayi"], c: "Sarpakenaka", h: "Raksasa wanita yang menggoda Rama dan Laksmana.", r: "Kemarahan Sarpakenaka menjadi pemicu Rahwana menculik Sinta." },
+        { q: "Senjata sakti milik Laksmana adalah...", a: ["Panah Nagapasa", "Panah Surawijaya", "Keris Pulanggeni", "Gada Intan"], c: "Panah Surawijaya", h: "Panah yang sangat cepat dan akurat.", r: "Laksmana adalah pemanah ulung yang mendampingi Rama." },
+        { q: "Punakawan yang memiliki filosofi 'waspada' dengan mata juling adalah...", a: ["Gareng", "Semar", "Petruk", "Bagong"], c: "Gareng", h: "Matanya selalu melihat ke bawah dan waspada.", r: "Gareng mengajarkan kita untuk selalu hati-hati dalam melangkah." },
+        { q: "Filosofi tangan Gareng yang bengkok (cekot) adalah...", a: ["Tidak suka mencuri", "Ahli memanah", "Suka memberi", "Suka bekerja"], c: "Tidak suka mencuri", h: "Mengingatkan untuk tidak mengambil hak orang lain.", r: "Cekot melambangkan pantang mengambil milik orang lain (nyolong)." },
+        { q: "Siapa ksatria yang menemani Rama mencari Sinta di hutan?", a: ["Laksmana", "Barata", "Sugriwa", "Anoman"], c: "Laksmana", h: "Adik yang bersumpah tidak tidur selama 14 tahun.", r: "Kesetiaan Laksmana merupakan pilar kekuatan Sri Rama." },
+        { q: "Nama busur panah sakti milik Sri Rama adalah...", a: ["Panah Guwawijaya", "Panah Pasopati", "Panah Sarotama", "Panah Bramastra"], c: "Panah Guwawijaya", h: "Senjata pemungkas untuk mengalahkan Rahwana.", r: "Guwawijaya adalah senjata titisan dewa yang mampu menghancurkan kejahatan." },
+        { q: "Sinta dianggap sebagai titisan dewi siapa?", a: ["Dewi Widowati", "Dewi Sri", "Dewi Ratih", "Dewi Durga"], c: "Dewi Widowati", h: "Dewi kecantikan yang selalu diburu Rahwana.", r: "Rahwana mengejar Sinta karena yakin dia adalah Widowati yang bereinkarnasi." },
+        { q: "Apa arti nama 'Ramayana'?", a: ["Perjalanan Rama", "Kemenangan Rama", "Cinta Rama", "Keagungan Rama"], c: "Perjalanan Rama", h: "Ayana berarti perjalanan.", r: "Ramayana mengisahkan perjalanan hidup dan dharma Sri Rama." }
+    ]},
+    { t: "PERANG BESAR ALENGKA", k: "K", n: "KUMBAKARNA", mx: 1200000, q: [
+        { q: "Raksasa yang tidur selama enam bulan adalah...", a: ["Kumbakarna", "Rahwana", "Indrajit", "Prahasta"], c: "Kumbakarna", h: "Adik Rahwana yang bertubuh gunung.", r: "Kumbakarna tidur panjang namun bangun demi membela tanah airnya." },
+        { q: "Apa motivasi Kumbakarna ikut berperang melawan Rama?", a: ["Membela Negara", "Membela Rahwana", "Mencari Ketenaran", "Ingin Makan"], c: "Membela Negara", h: "Nasionalisme sejati meski tahu kakaknya salah.", r: "Kumbakarna berperang demi Alengka, bukan demi membela kejahatan Rahwana." },
+        { q: "Siapa adik Rahwana yang memihak kepada Sri Rama?", a: ["Wibisana", "Kumbakarna", "Indrajit", "Marica"], c: "Wibisana", h: "Raksasa berhati ksatria yang bijaksana.", r: "Wibisana memilih jalan kebenaran (dharma) di atas ikatan keluarga." },
+        { q: "Nama kera putih utusan Rama ke Alengka adalah...", a: ["Anoman", "Sugriwa", "Subali", "Anggada"], c: "Anoman", h: "Putra Dewi Anjani yang bisa terbang.", r: "Anoman adalah duta agung yang membakar Alengka (Anoman Obong)." },
+        { q: "Raja Kera dari Kerajaan Kiskenda yang membantu Rama adalah...", a: ["Sugriwa", "Subali", "Anila", "Jembawan"], c: "Sugriwa", h: "Kera yang ditolong Rama merebut kembali takhtanya.", r: "Aliansi Rama dan Sugriwa membentuk pasukan Vanara yang sangat kuat." },
+        { q: "Anoman membakar Alengka setelah ditangkap oleh...", a: ["Indrajit", "Kumbakarna", "Prahasta", "Rahwana"], c: "Indrajit", h: "Putra mahkota Alengka yang ahli sihir.", r: "Indrajit menangkap Anoman dengan panah Nagapasa." },
+        { q: "Apa nama jembatan yang dibangun pasukan kera menuju Alengka?", a: ["Situbanda Layu", "Jembatan Ampera", "Sasak Galih", "Tambak Tirta"], c: "Situbanda Layu", h: "Jembatan batu melintasi samudera.", r: "Jembatan ini dibangun dengan bantuan Nala, kera arsitek yang sakti." },
+        { q: "Putra Rahwana yang memiliki kesaktian panah Nagapasa adalah...", a: ["Indrajit", "Trisirah", "Narantaka", "Dewayantaka"], c: "Indrajit", h: "Juga dikenal dengan nama Megananda.", r: "Indrajit adalah musuh paling berbahaya karena bisa menghilang di balik awan." },
+        { q: "Senjata Indrajit yang mengeluarkan ribuan ular adalah...", a: ["Panah Nagapasa", "Panah Pasopati", "Panah Cakrabaswara", "Gada Wesi"], c: "Panah Nagapasa", h: "Panah berwujud naga.", r: "Hanya burung Garuda (Sempati) yang bisa menawarkan racun Nagapasa." },
+        { q: "Siapa kera yang berhasil membunuh Prahasta, patih Alengka?", a: ["Anila", "Anoman", "Anggada", "Sugriwa"], c: "Anila", h: "Kera biru yang sangat lincah.", r: "Anila membunuh Prahasta dengan menimpakan tugu batu." },
+        { q: "Ksatria Alengka yang menjaga Sinta di taman Argasoka adalah...", a: ["Dewi Trijata", "Sarpakenaka", "Mandodari", "Widowati"], c: "Dewi Trijata", h: "Putri Wibisana yang berhati lembut.", r: "Trijata melindungi Sinta dari godaan dan ancaman Rahwana." },
+        { q: "Anoman adalah putra dari dewa apa?", a: ["Batara Bayu", "Batara Indra", "Batara Surya", "Batara Brahma"], c: "Batara Bayu", h: "Dewa penguasa angin.", r: "Anoman memiliki kekuatan angin yang membuatnya bisa melompat sangat jauh." },
+        { q: "Kera yang memiliki kesaktian bisa membelah diri menjadi banyak adalah...", a: ["Anoman", "Anggada", "Sugriwa", "Anila"], c: "Anoman", h: "Sering disebut 'Kapi Putih'.", r: "Kasekten Anoman termasuk 'Triwikrama' atau membesarkan tubuh jadi raksasa." },
+        { q: "Siapa ayah dari Anoman?", a: ["Batara Bayu", "Sugriwa", "Resi Gotama", "Subali"], c: "Batara Bayu", h: "Dewa Angin.", r: "Secara spiritual Anoman adalah putra Bayu, secara biologis putra Dewi Anjani." },
+        { q: "Rahwana memiliki ilmu 'Pancasona' yang membuatnya...", a: ["Tidak bisa mati", "Bisa terbang", "Bisa menghilang", "Kebal api"], c: "Tidak bisa mati", h: "Selama menyentuh tanah, dia akan hidup kembali.", r: "Ajian Pancasona membuat Rahwana hampir mustahil dikalahkan kecuali badannya dipisah." },
+        { q: "Kumbakarna gugur terkena panah Rama yang memutus...", a: ["Tangan dan Kakinya", "Kepalanya saja", "Jantungnya", "Matanya"], c: "Tangan dan Kakinya", h: "Rama memotong anggota tubuhnya satu per satu.", r: "Gugurnya Kumbakarna adalah salah satu momen paling mengharukan di Ramayana." },
+        { q: "Siapakah yang membunuh Indrajit dalam perang?", a: ["Laksmana", "Rama", "Anoman", "Wibisana"], c: "Laksmana", h: "Laksmana melakukan tapa brata khusus untuk ini.", r: "Laksmana berhasil memutus kepala Indrajit dengan panah Surawijaya." },
+        { q: "Apa nama taman tempat Sinta dikurung di Alengka?", a: ["Taman Argasoka", "Taman Kadilangu", "Taman Sari", "Taman Maerokoco"], c: "Taman Argasoka", h: "Hutan pohon Soka yang indah.", r: "Sinta menghabiskan waktu bertahun-tahun berdoa di bawah pohon Soka." },
+        { q: "Prajurit kera yang memimpin pembangunan jembatan adalah...", a: ["Nala", "Nila", "Jembawan", "Anila"], c: "Nala", h: "Kera yang memiliki sentuhan tangan ajaib.", r: "Nala adalah putra Dewa Wiswakarma, sang arsitek khayangan." },
+        { q: "Bagaimana cara Rama akhirnya mengalahkan Rahwana?", a: ["Dipanah lalu ditimbun gunung", "Dipenggal kepalanya", "Dibakar Anoman", "Tenggelam di laut"], c: "Dipanah lalu ditimbun gunung", h: "Gunung Sumawana menjepit tubuh Rahwana.", r: "Rama memanah Rahwana, lalu Anoman menimpakan gunung agar Rahwana tidak bisa hidup lagi." }
+    ]}
+];
 
-// Helper to get Image Source safely
-const getImg = (key, fallback) => (IMG_CACHE[key] && IMG_CACHE[key].src) || AS[key] || fallback;
+// --- Game State ---
+let S = { l:0, qi:0, hp:100000, mx:100000, ehp:0, emx:0, ek:"", ans:false, t:null, tl:10, uid:null };
 
-// --- LOGIC ---
 const playSFX = (id, vol = 1) => { const a=$(id); if(a){ a.currentTime=0; a.volume=vol; a.play().catch(()=>{}); }};
 const fadeAudio = (id, d = 1000) => { const a=$(id); if(!a || a.paused) return; const iv=a.volume, st=iv/(d/50); const t=setInterval(()=>{ if(a.volume>st) a.volume-=st; else { a.volume=0; a.pause(); a.volume=iv; clearInterval(t) } }, 50); };
+
 window.startNewJourney = () => { playSFX('sfx-confirm'); fadeAudio('audio-menu', 1500); $('menu-screen').style.display='none'; $('story-overlay').style.display='flex'; setTimeout(()=>{ $('story-title').style.opacity='1'; $('story-title').style.transform='translateY(0)'; playStory(); }, 800); };
-const playStory = async () => { const el=$('story-text'); for(const line of L_INTRO){ el.innerHTML=""; await typeEffect(el, line); await new Promise(r=>setTimeout(r, 1800)); if($('story-overlay').style.display==='none') return } $('skip-story-btn').style.opacity='1'; };
+
+const playStory = async () => { 
+    const L_INTRO = ["Dahulu, di Kerajaan Ayodhya, Sri Rama harus merelakan takhtanya demi sebuah janji agung...", "Ia menjalani pengasingan di Hutan Dandaka bersama istrinya yang setia, Dewi Sinta.", "Namun, angkara murka Rahwana mencabik kedamaian itu dengan tipu muslihat Kijang Kencana.", "Kini, dengan bantuan pasukan Vanara, Sri Rama berdiri di hadapan gerbang Alengka.", "Setiap anak panah yang ia lepaskan adalah doa untuk kebenaran...", "Selamatkan Dewi Sinta, hancurkan kegelapan Alengka!"];
+    const el=$('story-text'); 
+    for(const line of L_INTRO){ 
+        el.innerHTML=""; 
+        await typeEffect(el, line); 
+        await new Promise(r=>setTimeout(r, 1800)); 
+        if($('story-overlay').style.display==='none') return 
+    } 
+    $('skip-story-btn').style.opacity='1'; 
+};
+
 const typeEffect = (el, t) => new Promise(r => { let i=0; const I=setInterval(()=>{ el.innerHTML=t.substring(0,i)+'<span class="cursor"></span>'; i++; if(i>t.length){ clearInterval(I); r(); } }, 35); });
 window.endStory = () => { $('story-overlay').style.display='none'; window.startGame(true); };
+
 window.startGame = (n) => {
-    fadeAudio('audio-menu');
-    if(n) { S.l=0; S.hp=S.mx; } 
-    else if(window.saveData) { S.l=window.saveData.l; S.hp = (typeof window.saveData.hp === 'number' && !isNaN(window.saveData.hp)) ? window.saveData.hp : S.mx; } 
-    else { S.l=0; S.hp=S.mx; }
+    fadeAudio('audio-menu', 1000); 
+    if(n) { S.l=0; S.hp=S.mx; } else if(window.saveData) { S.l=window.saveData.l; S.hp = Number(window.saveData.hp) || S.mx; }
     $('menu-screen').style.display='none'; $('battle-screen').style.display='flex';
-    $('player-img').src=getImg('RAMA_IDLE'); playSFX('audio-battle', 0.8); loadLevel();
+    $('player-img').src=AS.R.i; playSFX('audio-battle', 0.8);
+    loadLevel();
 };
-window.loadLevel = () => { 
-    const d=DB[S.l]; 
-    if(!d) return endGame('victory'); 
-    playSFX('sfx-bab'); 
-    $('transition-text').innerText = `BAB ${S.l+1}: ${d.title}`; 
-    $('level-transition').classList.add('active'); 
-    setTimeout(()=>{ 
-        $('level-transition').classList.remove('active'); 
-        S.qi=0; S.ek=d.enemyKey; S.emx=d.enemyMaxHp; S.ehp=S.emx; 
-        $('enemy-name').innerText=d.enemyName; 
-        // FIX: Use Cached Image
-        $('enemy-img').src=getImg(S.ek+"_IDLE", getImg('RAHWANA_IDLE')); 
-        updateHP(); showQuestion(); saveCloud(); 
-    }, 2500); 
+
+window.loadLevel = () => {
+    const d=DB[S.l]; if(!d) return endGame('victory');
+    playSFX('sfx-bab');
+    $('transition-text').innerText = `BAB ${S.l+1}: ${d.t}`;
+    $('level-transition').classList.add('active');
+    setTimeout(()=>{
+        $('level-transition').classList.remove('active');
+        S.qi=0; S.ek=d.k; S.emx=d.mx; S.ehp=S.emx;
+        $('enemy-name').innerText=d.n; 
+        $('enemy-img').src=AS[S.ek].i || AS.H.i;
+        updateHP(); showQuestion(); saveCloud();
+    }, 2500);
 };
-window.showQuestion = () => { const d=DB[S.l]; if(!d) return; S.ans=false; if(S.qi === 0) d.questions.sort(() => Math.random() - 0.5); const q=d.questions[S.qi]; $('quiz-content').style.display='block'; $('rationale-box').style.display='none'; $('question').innerText=q.q; $('level-title').innerText=`TINGKAT ${S.l+1} - SERANGAN ${S.qi+1} / ${d.questions.length}`; $('hint-text').innerText=""; const g=$('options'); g.innerHTML=''; [...q.a].sort(()=>Math.random()-0.5).forEach(v=>{ const b=document.createElement('button'); b.className='opt-btn'; b.innerText=v; b.onclick=()=>{ playSFX('sfx-confirm'); checkAnswer(v===q.c); }; g.appendChild(b); }); startTimer(); };
+
+window.showQuestion = () => {
+    const d=DB[S.l]; if(!d) return;
+    S.ans=false; 
+    if(S.qi === 0) d.q.sort(() => Math.random() - 0.5);
+    
+    const q=d.q[S.qi];
+    $('quiz-content').style.display='block'; $('rationale-box').style.display='none';
+    $('question').innerText=q.q; 
+    $('level-title').innerText=`TINGKAT ${S.l+1} - SERANGAN ${S.qi+1} / ${d.q.length}`; 
+    $('hint-text').innerText="";
+    const g=$('options'); g.innerHTML='';
+    [...q.a].sort(()=>Math.random()-0.5).forEach(v=>{
+        const b=document.createElement('button'); b.className='opt-btn'; b.innerText=v;
+        b.onclick=()=>{ playSFX('sfx-confirm'); checkAnswer(v===q.c); }; g.appendChild(b);
+    });
+    startTimer();
+};
+
 window.startTimer = () => { clearInterval(S.t); S.tl=12; const f=$('timer-fill'), t=$('timer-text'); S.t=setInterval(()=>{ S.tl-=0.1; t.innerText=Math.max(0,Math.ceil(S.tl)); f.style.width=(S.tl/12*100)+'%'; if(S.tl<=0){ clearInterval(S.t); takeDamage(15000); } }, 100); };
-window.checkAnswer = (c) => { if(S.ans) return; S.ans=true; clearInterval(S.t); if(c) { if(S.hp<S.mx){ S.hp=Math.min(S.mx, S.hp+2000); floatTxt(2000, true, -20); } attackEnemy(); } else takeDamage(18000); };
-window.attackEnemy = () => { 
-    const d=DB[S.l]; 
-    const baseDmg = Math.ceil(S.emx / d.questions.length); 
-    const dmg = baseDmg + Math.floor(Math.random() * 2000); 
-    const pi=$('player-img'), ei=$('enemy-img'); 
-    // FIX: Change SRC immediately
-    pi.src=getImg('RAMA_ATTACK'); pi.style.transform=`translateY(-20px) translateX(60px) scale(1.1)`; 
-    setTimeout(()=>{ 
+
+window.checkAnswer = (c) => {
+    if(S.ans) return; S.ans=true; clearInterval(S.t);
+    if(c) { if(S.hp<S.mx){ S.hp=Math.min(S.mx, S.hp+2000); floatTxt(2000, true, -20); } attackEnemy(); } else takeDamage(18000);
+};
+
+window.attackEnemy = () => {
+    const d=DB[S.l], baseDmg = Math.ceil(S.emx / d.q.length), dmg = baseDmg + Math.floor(Math.random() * 2000);
+    const pi=$('player-img'), ei=$('enemy-img');
+    pi.src=AS.R.a; pi.style.transform=`translateY(-20px) translateX(60px) scale(1.1)`;
+    setTimeout(()=>{
         S.ehp -= dmg; 
-        ei.src=S.ehp<=0?getImg(S.ek+"_DEAD", getImg('RAHWANA_DEAD')):getImg(S.ek+"_HURT", getImg('RAHWANA_HURT')); 
-        playSFX('sfx-hit-enemy'); createFX('enemy-img'); floatTxt(dmg, false, 20); 
-        $('game-container').classList.add('shake'); updateHP(); 
-        setTimeout(()=>{ 
-            pi.src=getImg('RAMA_IDLE'); pi.style.transform="none"; 
-            if(S.ehp>0) ei.src=getImg(S.ek+"_IDLE", getImg('RAHWANA_IDLE')); 
-            $('game-container').classList.remove('shake'); showRationale(); 
-        }, 400); 
-    }, 150); 
+        ei.src=S.ehp<=0?(AS[S.ek].d||AS.H.d):(AS[S.ek].h||AS.H.h);
+        playSFX('sfx-hit-enemy'); createFX('enemy-img'); floatTxt(dmg, false, 20);
+        $('game-container').classList.add('shake'); updateHP();
+        setTimeout(()=>{ pi.src=AS.R.i; pi.style.transform="none"; if(S.ehp>0) ei.src=AS[S.ek].i||AS.H.i; $('game-container').classList.remove('shake'); showRationale(); }, 400);
+    }, 150);
 };
-window.takeDamage = (dmg) => { 
-    S.hp-=dmg; 
-    const pi=$('player-img'), ei=$('enemy-img'); 
-    // FIX: Change SRC immediately
-    ei.src=getImg(S.ek+"_ATTACK", getImg('RAHWANA_ATTACK')); ei.style.transform=`translateX(-80px) scale(1.2)`; 
-    setTimeout(()=>{ 
-        pi.src=S.hp<=0?getImg('RAMA_DEAD'):getImg('RAMA_HURT'); 
-        playSFX('sfx-hit-player'); createFX('player-img'); floatTxt(dmg, false, -20); 
-        $('game-container').classList.add('shake'); updateHP(); 
-        setTimeout(()=>{ 
-            ei.src=getImg(S.ek+"_IDLE", getImg('RAHWANA_IDLE')); ei.style.transform="none"; 
-            $('game-container').classList.remove('shake'); 
-            if(S.hp<=0) endGame('gameover'); 
-            else { pi.src=getImg('RAMA_IDLE'); showRationale(); } 
-        }, 400); 
-    }, 200); 
+
+window.takeDamage = (dmg) => {
+    S.hp-=dmg; const pi=$('player-img'), ei=$('enemy-img');
+    ei.src=AS[S.ek].a||AS.H.a; ei.style.transform=`translateX(-80px) scale(1.2)`;
+    setTimeout(()=>{
+        pi.src=S.hp<=0?AS.R.d:AS.R.h;
+        playSFX('sfx-hit-player'); createFX('player-img'); floatTxt(dmg, false, -20);
+        $('game-container').classList.add('shake'); updateHP();
+        setTimeout(()=>{ ei.src=AS[S.ek].i||AS.H.i; ei.style.transform="none"; $('game-container').classList.remove('shake'); if(S.hp<=0) endGame('gameover'); else { pi.src=AS.R.i; showRationale(); } }, 400);
+    }, 200);
 };
-window.showRationale = () => { const q=DB[S.l].questions[S.qi]; $('quiz-content').style.display='none'; $('rationale-box').style.display='block'; $('rationale-text').innerHTML=`<span style="color:var(--gold);font-family:'Cinzel';">PAWISIK:</span><br>${q.r}`; };
-window.nextAction = () => { playSFX('sfx-confirm'); if(S.ehp<=0) { S.l++; if(S.l >= DB.length) endGame('victory'); else loadLevel(); return; } S.qi++; if(S.qi >= DB[S.l].questions.length) S.qi = 0; showQuestion(); };
-window.updateHP = () => { $('player-hp').style.width=(S.hp/S.mx*100)+'%'; $('enemy-hp').style.width=(Math.max(0,S.ehp)/S.emx*100)+'%'; $('player-hp-text').innerText=`${Math.max(0,Math.floor(S.hp)).toLocaleString('id-ID')} / 100.000`; $('enemy-hp-text').innerText=`${Math.max(0,Math.floor(S.ehp)).toLocaleString('id-ID')} / ${S.emx.toLocaleString('id-ID')}`; };
-window.createFX = (tid) => { const t=$(tid); if(!t) return; const r=t.getBoundingClientRect(); const c=document.createElement('div'); c.className='explosion-fire'; c.style.left=(r.left+r.width/2-75)+'px'; c.style.top=(r.top+r.height/2-75)+'px'; c.innerHTML='<div class="fire-core"></div>'; document.body.appendChild(c); const f=$('screen-flash'); f.style.animation='none'; void f.offsetHeight; f.style.animation='screenFireFlash 0.5s ease-out forwards'; setTimeout(()=>c.remove(), 700); };
-window.floatTxt = (val, h, xOff) => { const d=document.createElement('div'); d.className='floating-text'; d.innerText=(h?"+":"-")+Math.floor(val).toLocaleString('id-ID'); d.style.color=h?"#2ecc71":"#ff4d4d"; d.style.left=(50+xOff)+'%'; d.style.top="35%"; $('battle-screen').appendChild(d); setTimeout(()=>d.remove(), 1000); };
-window.useHint = () => { playSFX('sfx-confirm'); $('hint-text').innerText="» "+DB[S.l].questions[S.qi].h; };
+
+window.showRationale = () => {
+    const q=DB[S.l].q[S.qi];
+    $('quiz-content').style.display='none'; $('rationale-box').style.display='block';
+    $('rationale-text').innerHTML=`<span style="color:var(--gold);font-family:'Cinzel';">PAWISIK:</span><br>${q.r}`;
+};
+
+window.nextAction = () => {
+    playSFX('sfx-confirm');
+    if(S.ehp<=0) { S.l++; if(S.l >= DB.length) endGame('victory'); else loadLevel(); return; }
+    S.qi++; if(S.qi >= DB[S.l].q.length) S.qi = 0; 
+    showQuestion();
+};
+
+window.updateHP = () => {
+    S.hp = Number(S.hp) || 0; 
+    $('player-hp').style.width=(S.hp/S.mx*100)+'%'; $('enemy-hp').style.width=(Math.max(0,S.ehp)/S.emx*100)+'%';
+    $('player-hp-text').innerText=`${Math.max(0,Math.floor(S.hp)).toLocaleString('id-ID')} / 100.000`;
+    $('enemy-hp-text').innerText=`${Math.max(0,Math.floor(S.ehp)).toLocaleString('id-ID')} / ${S.emx.toLocaleString('id-ID')}`;
+};
+
+window.createFX = (tid) => {
+    const t=$(tid); if(!t) return; const r=t.getBoundingClientRect();
+    const c=document.createElement('div'); c.className='explosion-fire'; c.style.left=(r.left+r.width/2-75)+'px'; c.style.top=(r.top+r.height/2-75)+'px';
+    c.innerHTML='<div class="fire-core"></div>'; document.body.appendChild(c);
+    const f=$('screen-flash'); f.style.animation='none'; void f.offsetHeight; f.style.animation='screenFireFlash 0.5s ease-out forwards';
+    setTimeout(()=>c.remove(), 700);
+};
+
+window.floatTxt = (val, h, xOff) => {
+    const d=document.createElement('div'); d.className='floating-text'; d.innerText=(h?"+":"-")+Math.floor(val).toLocaleString('id-ID');
+    d.style.color=h?"#2ecc71":"#ff4d4d"; d.style.left=(50+xOff)+'%'; d.style.top="35%"; $('battle-screen').appendChild(d); setTimeout(()=>d.remove(), 1000);
+};
+
+window.useHint = () => { playSFX('sfx-confirm'); $('hint-text').innerText="» "+DB[S.l].q[S.qi].h; };
+
 window.endGame = (type) => { clearInterval(S.t); fadeAudio('audio-battle', 800); $(type+'-screen').style.display='flex'; playSFX(type==='victory'?'sfx-jayanti':'sfx-petjah', 1); };
 window.retryLevel = () => { S.hp=S.mx; $('gameover-screen').style.display='none'; playSFX('audio-battle', 0.8); loadLevel(); };
-window.backToMenu = (fs) => { playSFX('sfx-back'); fadeAudio('audio-battle'); fadeAudio('sfx-jayanti'); fadeAudio('sfx-petjah'); clearInterval(S.t); $('victory-screen').style.display='none'; $('gameover-screen').style.display='none'; $('battle-screen').style.display='none'; $('menu-screen').style.display='flex'; $('audio-battle').pause(); playSFX('audio-menu'); if(S.uid) loadCloud(S.uid); };
-window.saveCloud = async () => { if(!S.uid) return; try { const d={ l:S.l, h:S.hp, t:new Date().toISOString() }; window.saveData=d; await setDoc(doc(db,'artifacts',appId,'users',S.uid,'saveData','progress'), d, {merge:true}); } catch(e){} };
+window.backToMenu = (fs) => { playSFX('sfx-back'); clearInterval(S.t); $('victory-screen').style.display='none'; $('gameover-screen').style.display='none'; $('battle-screen').style.display='none'; $('menu-screen').style.display='flex'; $('audio-battle').pause(); playSFX('audio-menu'); if(S.uid) loadCloud(S.uid); };
+
+window.saveCloud = async () => { if(!S.uid) return; try { await setDoc(doc(db,'artifacts',appId,'users',S.uid,'saveData','progress'), { l:S.l, h:S.hp, t:new Date().toISOString() }, {merge:true}); } catch(e){} };
 const loadCloud = async uid => { const snap=await getDoc(doc(db,'artifacts',appId,'users',uid,'saveData','progress')); if(snap.exists()){ window.saveData=snap.data(); $('ui-resume').style.display='block'; $('cloud-status').innerText="Cloud Sync: Bab "+(window.saveData.l+1); } else $('cloud-status').innerText="Cloud Sync: Baru"; };
 onAuthStateChanged(auth, u => { if(u){ S.uid=u.uid; loadCloud(u.uid); } else signInAnonymously(auth); });
 
-// Init
-const createFire = () => { const c=$('fire-container'), cl=['#ff4500','#ff8c00','#ffcc00','#fff']; for(let i=0;i<35;i++){ const s=document.createElement('div'); s.className='spark'; const z=Math.random()*4+2; s.style.width=z+'px'; s.style.height=z+'px'; s.style.left=Math.random()*100+'%'; s.style.background=cl[Math.floor(Math.random()*4)]; s.style.setProperty('--duration',(Math.random()*3+2)+'s'); s.style.setProperty('--drift',(Math.random()*200-100)+'px'); s.style.animationDelay=Math.random()*5+'s'; c.appendChild(s); } }; createFire();
-preloadAssets();
+// Fire Background
+const createFire = () => {
+    const c=$('fire-container'), cl=['#ff4500','#ff8c00','#ffcc00','#fff'];
+    for(let i=0;i<35;i++){
+        const s=document.createElement('div'); s.className='spark'; const z=Math.random()*4+2; s.style.width=z+'px'; s.style.height=z+'px';
+        s.style.left=Math.random()*100+'%'; s.style.background=cl[Math.floor(Math.random()*4)]; s.style.setProperty('--duration',(Math.random()*3+2)+'s'); s.style.setProperty('--drift',(Math.random()*200-100)+'px'); s.style.animationDelay=Math.random()*5+'s'; c.appendChild(s);
+    }
+};
+createFire();
+
+// Fake Loader
+let p=0; const int=setInterval(()=>{
+    p+=Math.floor(Math.random()*20)+5; if(p>100) p=100;
+    $('loading-status').innerText=`MEMUAT TAKDIR... ${p}%`;
+    if(p===100){ clearInterval(int); $('loading-overlay').style.opacity=0; setTimeout(()=>{ $('loading-overlay').style.display='none'; playSFX('audio-menu'); }, 500); }
+}, 80);
 </script>
 </body>
 </html>
