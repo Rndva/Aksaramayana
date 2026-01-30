@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AksaRamayana - Karaton Edition (Optimized)</title>
+    <title>AksaRamayana - Karaton Edition (Final)</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #ffcc00; --dark: #2b1a0a; --b-gold: #b8860b; --paper: #f0e6d2; --glass: rgba(20, 10, 5, 0.85); --fr: #ff4500; --fo: #ff8c00; --blood: #8a0303; --bg-fallback: #110805; }
@@ -38,11 +38,26 @@
             inset: 0; 
             background-color: var(--bg-fallback); 
             background-image: url('https://i.postimg.cc/NGd3C08H/Battle.png'); 
-            /* Perbaikan di sini: Zoom 160% dan posisi mentok di bawah */
             background-size: 160% auto; 
             background-position: center bottom; 
             background-repeat: no-repeat;
             z-index: 1; 
+        }
+
+        /* --- TIME VIGNETTE --- */
+        #time-vignette {
+            position: absolute; inset: 0; pointer-events: none; z-index: 9; /* Di atas fire, di bawah karakter */
+            box-shadow: inset 0 0 0 0 rgba(255,0,0,0);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        @keyframes pulseRed {
+            0% { opacity: 0; box-shadow: inset 0 0 0 0 rgba(255,0,0,0); }
+            50% { opacity: 1; box-shadow: inset 0 0 180px 40px rgba(255,0,0,0.4); }
+            100% { opacity: 0; box-shadow: inset 0 0 0 0 rgba(255,0,0,0); }
+        }
+        .pulsing {
+            animation: pulseRed 1s infinite;
         }
 
         /* --- Transitions --- */
@@ -143,6 +158,7 @@
     <div id="damage-overlay"></div>
     <div id="battle-bg"></div>
     <div id="fire-container"></div>
+    <div id="time-vignette"></div> <!-- VIGNETTE BARU -->
     <div id="level-transition"><div id="transition-content"><h2 id="transition-text">BAB 1</h2></div></div>
     
     <div id="menu-screen">
@@ -213,7 +229,6 @@ const AS = {
 };
 
 // --- Question Database ---
-// p: Player Key (Hero), k: Enemy Key (Villain), n: Enemy Name, q: Questions
 const DB = [
     { t: "PERTEMPURAN PERTAMA: JATAYU!", p: "J", k: "H", n: "RAHWANA", mx: 200000, q: [
         { q: "Siapa burung raksasa sahabat Prabu Dasarata yang berusaha menyelamatkan Dewi Sinta?", a: ["Resi Jatayu", "Sempati", "Garuda", "Naga"], c: "Jatayu", h: "eemm itu ada deh pokoknya buwung ayu", r: "Jatayu berjuang habis-habisan melindungi kehormatan Sinta." },
@@ -341,7 +356,6 @@ const DB = [
 ];
 
 // --- Game State ---
-// pk: Player Key, ek: Enemy Key
 let S = { l:0, qi:0, hp:100000, mx:100000, ehp:0, emx:0, pk: 'R', ek: 'H', ans:false, t:null, tl:10, uid:null };
 
 // --- Global Functions ---
@@ -352,7 +366,6 @@ window.setCharState = (target, state) => {
     const imgId = target === 'player' ? 'player-img' : 'enemy-img';
     const img = $(imgId);
     if (!img) return;
-    // LOGIC FIX: Gunakan S.pk untuk player, dan S.ek untuk enemy. Jangan hardcode 'R'.
     let assetKey = target === 'player' ? S.pk : S.ek; 
     
     if (!AS[assetKey]) assetKey = target === 'player' ? 'R' : 'H'; 
@@ -394,14 +407,20 @@ window.startGame = (n) => {
 
 window.loadLevel = () => {
     const d=DB[S.l]; if(!d) return endGame('victory');
-    // Fix: Assign Player Key (p) and Enemy Key (k)
+    // Assign Keys
     S.pk = d.p || 'R'; 
     S.ek = d.k || 'H';
     
     playSFX('sfx-bab'); $('transition-text').innerText = `BAB ${S.l+1}: ${d.t}`; $('level-transition').classList.add('active');
     setTimeout(()=>{
         $('level-transition').classList.remove('active'); S.qi=0; S.emx=d.mx; S.ehp=S.emx;
-        $('enemy-name').innerText=d.n; setCharState('enemy', 'idle'); updateHP(); showQuestion(); saveCloud();
+        $('enemy-name').innerText=d.n; 
+        
+        // FIX: Set player state AFTER loading level data to ensure correct character (e.g., Jatayu) appears immediately
+        setCharState('enemy', 'idle'); 
+        setCharState('player', 'idle'); 
+        
+        updateHP(); showQuestion(); saveCloud();
     }, 2500);
 };
 
@@ -417,9 +436,33 @@ window.showQuestion = () => {
     startTimer();
 };
 
-window.startTimer = () => { clearInterval(S.t); S.tl=12; const f=$('timer-fill'), t=$('timer-text'); S.t=setInterval(()=>{ S.tl-=0.1; t.innerText=Math.max(0,Math.ceil(S.tl)); f.style.width=(S.tl/12*100)+'%'; if(S.tl<=0){ clearInterval(S.t); takeDamage(15000); } }, 100); };
+window.startTimer = () => { 
+    clearInterval(S.t); 
+    S.tl=12; 
+    const f=$('timer-fill'), t=$('timer-text'); 
+    $('time-vignette').classList.remove('pulsing'); // Reset vignette
+    
+    S.t=setInterval(()=>{ 
+        S.tl-=0.1; 
+        t.innerText=Math.max(0,Math.ceil(S.tl)); 
+        f.style.width=(S.tl/12*100)+'%'; 
 
-window.checkAnswer = (c) => { if(S.ans) return; S.ans=true; clearInterval(S.t); if(c) { if(S.hp<S.mx){ S.hp=Math.min(S.mx, S.hp+2000); floatTxt(2000, true, -20); } attackEnemy(); } else takeDamage(18000); };
+        // Vignette Logic: Pulse when < 6 seconds
+        if(S.tl <= 6) {
+            $('time-vignette').classList.add('pulsing');
+        } else {
+            $('time-vignette').classList.remove('pulsing');
+        }
+
+        if(S.tl<=0){ 
+            clearInterval(S.t); 
+            $('time-vignette').classList.remove('pulsing');
+            takeDamage(15000); 
+        } 
+    }, 100); 
+};
+
+window.checkAnswer = (c) => { if(S.ans) return; S.ans=true; clearInterval(S.t); $('time-vignette').classList.remove('pulsing'); if(c) { if(S.hp<S.mx){ S.hp=Math.min(S.mx, S.hp+2000); floatTxt(2000, true, -20); } attackEnemy(); } else takeDamage(18000); };
 
 window.attackEnemy = () => {
     const d=DB[S.l], dmg = Math.ceil(S.emx / d.q.length) + Math.floor(Math.random() * 2000);
