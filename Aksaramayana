@@ -37,11 +37,13 @@
             position: absolute; 
             inset: 0; 
             background-color: var(--bg-fallback); 
+            /* Default image akan di-override oleh JS */
             background-image: url('https://i.postimg.cc/NGd3C08H/Battle.png'); 
             background-size: 160% auto; 
             background-position: center bottom; 
             background-repeat: no-repeat;
             z-index: 1; 
+            transition: background-image 0.5s ease; /* Transisi halus antar peta */
         }
 
         /* --- TIME VIGNETTE --- */
@@ -174,7 +176,8 @@
     <div id="battle-screen">
         <div class="hud">
             <div class="hp-container">
-                <div class="hp-label" style="font-size: 0.8rem; color: var(--gold);">HERO</div>
+                <!-- ID player-name ditambahkan di sini -->
+                <div id="player-name" class="hp-label" style="font-size: 0.8rem; color: var(--gold);">HERO</div>
                 <div class="hp-bar-bg"><div id="player-hp" class="hp-bar-fill"></div><div id="player-hp-text" class="hp-values">100.000 / 100.000</div></div>
             </div>
             <div class="hp-container" style="text-align: right;">
@@ -271,7 +274,7 @@ const DB = [
         { q: "Rahwana menyebut Anoman 'Kapiten' sebagai...", a: ["Pujian Santun", "Penghina", "Inisiatif", "Hoaks"], c: "Inisiatif", h: "Strategi toxic Rahwana untuk menipu mental Anoman.", r: "Seolah-olah mengangkat derajat Anoman padah haram." },
         { q: "Kenapa gerbang Alengka mudah ditembus?", a: ["Kelemahan desain", "Bug", "Cheat", "Ditinggalkan"], c: "Ditinggalkan", h: "Desainernya lupa pasang sensor motion di gerbang.", r: "Sempati terbang masuk lewat celah keamanan gerbang." },
         { q: "Apa nama istrinya Wilkataksini?", a: ["Tari", "Indriyanti", "Sarpakenaka", "Widawati"], c: "Tari", h: "Istri cantik tapi sayangnya miring (follow toxic boss).", r: "Tari setia suaminya Waluya, walau suaminya salah." },
-        { q: "Jika Wilkataksini hidup, dia bakal...", a: ["Main Mobile", "Re-roll", "Spawn", "AFK"], c: "AFK", h: "Dia bakal bangkit terus karena anti-afk (Pancasona).", r: "Hanya mati kalau 'disconnected' (diputus dari tanah)." },
+        { q: "Jika Wilkataksini hidup, dia bakal...", a: ["Main Mobile", "Re-roll", "Spawn", "AFK"], c: "AFK", h: "Dia bakal bangkit terus karena anti-kafk (Pancasona).", r: "Hanya mati kalau 'disconnected' (diputus dari tanah)." },
         { q: "Anoman dijuluki oleh...", a: ["Prahasta", "Wilkataksini", "Marica", "Indrajit"], c: "Wilkataksini", h: "Dia jadi penjaga pertama yang menghalangi jalan Anoman.", r: "Anoman harus mengalahkan dia untuk melanjutkan ke boss berikutnya." }
     ]},
     { t: "TRIK MUSLIHAT: MARICA", p: "A", k: "M", n: "MARICA", mx: 300000, q: [
@@ -411,12 +414,37 @@ window.loadLevel = () => {
     S.pk = d.p || 'R'; 
     S.ek = d.k || 'H';
     
+    // --- UPDATE BACKGROUND PER LEVEL ---
+    const bgElement = $('battle-bg');
+    if(bgElement) {
+        switch(S.l) {
+            case 0: // Bab 1
+                bgElement.style.backgroundImage = "url('https://i.postimg.cc/YqjJ5w8V/laut_alengka.png')"; 
+                break;
+            case 1: // Bab 2
+                bgElement.style.backgroundImage = "url('https://i.postimg.cc/L4xcQskW/Hutan_Dandaka_Kijang_Part_1.png')"; 
+                break;
+            case 2: // Bab 3
+                bgElement.style.backgroundImage = "url('https://i.postimg.cc/MZ9C3G0r/Hutan_Dandaka_intro_2.png')"; 
+                break;
+            default: // Bab 4 & 5 (Default Battle)
+                bgElement.style.backgroundImage = "url('https://i.postimg.cc/NGd3C08H/Battle.png)"; 
+                break;
+        }
+    }
+    // END BACKGROUND UPDATE
+    
     playSFX('sfx-bab'); $('transition-text').innerText = `BAB ${S.l+1}: ${d.t}`; $('level-transition').classList.add('active');
     setTimeout(()=>{
         $('level-transition').classList.remove('active'); S.qi=0; S.emx=d.mx; S.ehp=S.emx;
         $('enemy-name').innerText=d.n; 
         
-        // FIX: Set player state AFTER loading level data to ensure correct character (e.g., Jatayu) appears immediately
+        // --- UPDATE PLAYER NAME DYNAMICALLY ---
+        if(AS[S.pk]) {
+            $('player-name').innerText = AS[S.pk].n.toUpperCase();
+        }
+
+        // FIX: Set player state AFTER loading level data
         setCharState('enemy', 'idle'); 
         setCharState('player', 'idle'); 
         
