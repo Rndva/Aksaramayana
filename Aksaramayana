@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AksaRamayana - Karaton Edition (Final Optimized)</title>
+    <title>AksaRamayana - Karaton Edition (Fixed)</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #ffcc00; --dark: #2b1a0a; --b-gold: #b8860b; --paper: #f0e6d2; --glass: rgba(20, 10, 5, 0.85); --fr: #ff4500; --fo: #ff8c00; --blood: #8a0303; --bg-fallback: #110805; }
@@ -18,7 +18,7 @@
             z-index: 3000; display: none; 
             flex-direction: column; justify-content: center; align-items: center; 
             padding: 20px; text-align: center;
-            cursor: pointer; /* Click anywhere */
+            cursor: pointer;
         }
         
         #story-content { max-width: 800px; min-height: 150px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
@@ -27,20 +27,20 @@
         .cursor { display: inline-block; width: 10px; height: 3px; background: var(--gold); margin-left: 5px; animation: blink .8s infinite; vertical-align: middle; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* --- NEW STORY SCENE STYLES --- */
+        /* --- STORY SCENE STYLES --- */
         #story-scene-img {
             max-width: 90%;
             max-height: 50vh;
             border: 2px solid var(--gold);
-            box-shadow: 0 0 25px var(--gold); /* Glow Emas */
+            box-shadow: 0 0 25px var(--gold);
             border-radius: 8px;
             object-fit: contain;
-            display: none; /* Hidden by default */
+            display: none;
             animation: fadeInImg 0.8s ease;
             z-index: 3002;
         }
         #story-scene-text-box {
-            background: rgba(0, 0, 0, 0.7); /* Box Hitam Opacity sedikit lebih gelap */
+            background: rgba(0, 0, 0, 0.8);
             padding: 15px 25px;
             margin-top: 20px;
             border-radius: 12px;
@@ -49,7 +49,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            display: none; /* Hidden by default */
+            display: none;
             z-index: 3002;
             border: 1px solid rgba(255, 204, 0, 0.3);
         }
@@ -170,10 +170,17 @@
 
         /* --- MOBILE OPTIMIZATIONS --- */
         @media (max-width: 768px) {
+            /* Base Mobile Styles */
             #battle-bg {
-                /* Zoom vertikal, mentok di bawah, cover layar */
                 background-size: 200% auto !important; 
                 background-position: center bottom !important;
+            }
+            
+            /* FORCE ZOOM for BAB 3, 4, & 5 (Index 2, 3, 4) */
+            .zoom-battle #battle-bg {
+                background-size: 280% auto !important; /* Zoom lebih dalam */
+                background-position: center bottom !important;
+                transform: translateY(0); /* Pastikan mentok bawah */
             }
             
             .quiz-container {
@@ -230,7 +237,6 @@
         <!-- Intro Elements -->
         <h2 id="story-title">SERAT PURWAKA</h2>
         <div id="story-text"></div>
-        <!-- Button tanpa onclick, dikontrol via listener overlay -->
         <button id="skip-story-btn" class="opt-btn" style="opacity:0; transition:opacity 1s; padding: 12px 60px; margin: 0 auto;">MULAI PERJUANGAN</button>
         
         <!-- Scene Elements -->
@@ -243,8 +249,9 @@
 
 <audio id="audio-menu" loop preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/menu.mp3"></audio>
 <audio id="audio-battle" loop preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/97db58b5d604c46fce22d4622a35afe4c8764aa1/Epic%20Forge%20of%20the%20Gamelan.mp3"></audio>
-<!-- AUDIO BOSS BARU UNTUK BAB 4 & 5 -->
 <audio id="audio-boss" loop preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/3ec09bbeb1d706446a67ce6231864106304cbf36/Final%20Boss%20of%20Borobudur%20(1).mp3"></audio>
+<!-- FINAL BOSS MUSIC (BAB 5) -->
+<audio id="audio-final" loop preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/39a44e3468610e0709c50a4e0d286e4509bc6c9a/Rahwana%E2%80%99s%20Final%20Hour.mp3" type="audio/mpeg"></audio>
 
 <audio id="sfx-confirm" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/confirm.wav"></audio>
 <audio id="sfx-back" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/back.wav"></audio>
@@ -253,6 +260,8 @@
 <audio id="sfx-hit-enemy" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/ceb03776e38c4f4d49acb502302424fd91711b0c/hit.wav"></audio>
 <audio id="sfx-jayanti" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/0b31405679cfa4c1fae72d499ed38332f6ea1bd5/win.mp3"></audio>
 <audio id="sfx-petjah" preload="auto"><source src="https://raw.githubusercontent.com/Rndva/Aksaramayana/0b31405679cfa4c1fae72d499ed38332f6ea1bd5/lose.mp3"></audio>
+<!-- TYPING SFX -->
+<audio id="sfx-type" preload="auto"><source src="https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3"></audio>
 
 <div id="game-container">
     <div id="screen-flash"></div>
@@ -321,24 +330,41 @@ const $ = id => document.getElementById(id);
 // --- STORY STATE MANAGEMENT ---
 let S = { l:0, qi:0, hp:100000, mx:100000, ehp:0, emx:0, pk: 'R', ek: 'H', ans:false, t:null, tl:10, uid:null, sceneIndex: 0 };
 let storyState = 'intro'; // 'intro', 'scenes', 'ended'
+let currentStoryKey = 'intro'; // 'intro', 'after1', 'after4', 'after5'
 let introDone = false;
 let isTyping = false;
 let typeInterval = null;
 
-// --- NEW STORYLINE DATA ---
-const STORY_SCENES = [
-    { img: "https://i.postimg.cc/qMrnPTj8/Story1Rest.png", text: "Rama, Sinta, dan laksmana sedang beristirahat di tengah Hutan Dandaka" },
-    { img: "https://i.postimg.cc/jSg7nJK1/Story2Notice.png", text: "Sinta tak sengaja melihat sesuatu berkilauan di kejauhan hutan" },
-    { img: "https://i.postimg.cc/DfLLpZQt/Story3Kijang.png", text: "KIJANG EMAS!!?, ternyata sesuatu yang berkilauan itu adalah rusa berwarna emas berkilau!" },
-    { img: "https://i.postimg.cc/mZCCpDNf/Story4Hope.png", text: "Sinta pun memohon kepada Rama untuk menangkap Kijang itu untuknya.. dengan memohon imut, pria mana yang menolak permintaan kekasihnya.. kyaaaa...." },
-    { img: "https://i.postimg.cc/SxTMYzqB/Story5KijangBow.png", text: "Rama pun mengejar kijang itu meninggalkan laksmana dan shinta" },
-    { img: "https://i.postimg.cc/43Yh6NN2/Story6Teriak.png", text: "Tak lama kemudian terdengar teriakan Rama yang sangat keras seperti kesakitan, dan itu membuat Sinta khawatir dong.." },
-    { img: "https://i.postimg.cc/htydQ7gN/Story7LeksmanaRekha.png", text: "laksmana lalu bergegas membuat garis pelindung untuk Dewi Sinta agar tidak keluar dari garis pelindung itu, dan menyusul Rama" },
-    { img: "https://i.postimg.cc/Zn8NW7KP/Story8ShintaAlone.png", text: "Sinta sendirian di dalam garis pelindung dengan penuh rasa khawatir" },
-    { img: "https://i.postimg.cc/prfjmGXk/Story9Brahmana.png", text: "tiba-tiba lewatlah brahmana tua rintih lemas, meminta air untuk diminum," },
-    { img: "https://i.postimg.cc/Bv1ZzkFn/Story10.png", text: "Cewe mana yang ga iba, melihat brahmana tua kehausan, Akhirnya Shinta keluar dari garis pelindung dan tiba tiba tangannya ditarik oleh brahmana tersebut!" },
-    { img: "https://i.postimg.cc/6QG6PgZ9/Story11.png", text: "TERNYATA Brahmana itu adalah Rahwana yang menyamar!, Diculik lah Sinta ke Langit!" }
-];
+// --- STORYLINE DATABASE ---
+const STORY_DATA = {
+    intro: [
+        { img: "https://i.postimg.cc/qMrnPTj8/Story1Rest.png", text: "Rama, Sinta, dan laksmana sedang beristirahat di tengah Hutan Dandaka" },
+        { img: "https://i.postimg.cc/jSg7nJK1/Story2Notice.png", text: "Sinta tak sengaja melihat sesuatu berkilauan di kejauhan hutan" },
+        { img: "https://i.postimg.cc/DfLLpZQt/Story3Kijang.png", text: "KIJANG EMAS!!?, ternyata sesuatu yang berkilauan itu adalah rusa berwarna emas berkilau!" },
+        { img: "https://i.postimg.cc/mZCCpDNf/Story4Hope.png", text: "Sinta pun memohon kepada Rama untuk menangkap Kijang itu untuknya.. dengan memohon imut, pria mana yang menolak permintaan kekasihnya.. kyaaaa...." },
+        { img: "https://i.postimg.cc/SxTMYzqB/Story5KijangBow.png", text: "Rama pun mengejar kijang itu meninggalkan laksmana dan shinta" },
+        { img: "https://i.postimg.cc/43Yh6NN2/Story6Teriak.png", text: "Tak lama kemudian terdengar teriakan Rama yang sangat keras seperti kesakitan, dan itu membuat Sinta khawatir dong.." },
+        { img: "https://i.postimg.cc/htydQ7gN/Story7LeksmanaRekha.png", text: "laksmana lalu bergegas membuat garis pelindung untuk Dewi Sinta agar tidak keluar dari garis pelindung itu, dan menyusul Rama" },
+        { img: "https://i.postimg.cc/Zn8NW7KP/Story8ShintaAlone.png", text: "Sinta sendirian di dalam garis pelindung dengan penuh rasa khawatir" },
+        { img: "https://i.postimg.cc/prfjmGXk/Story9Brahmana.png", text: "tiba-tiba lewatlah brahmana tua rintih lemas, meminta air untuk diminum," },
+        { img: "https://i.postimg.cc/Bv1ZzkFn/Story10.png", text: "Cewe mana yang ga iba, melihat brahmana tua kehausan, Akhirnya Shinta keluar dari garis pelindung dan tiba tiba tangannya ditarik oleh brahmana tersebut!" },
+        { img: "https://i.postimg.cc/6QG6PgZ9/Story11.png", text: "TERNYATA Brahmana itu adalah Rahwana yang menyamar!, Diculik lah Sinta ke Langit!" }
+    ],
+    after1: [
+        { img: "https://i.postimg.cc/h4LGq1WJ/Story12.png", text: "Jatayu tidak sanggup melawan Rahwana, ia jatuh ke tanah, dan sempat memberitahu Rama keberadaan Rahwana" },
+        { img: "https://i.postimg.cc/vTb8XywL/StorySugriwa.png", text: "Rama akhirnya menemui Sugriwa raja kera, untuk memerintahkan Anoman membawa cincin dan menjemput Dewi Sinta" }
+    ],
+    after4: [
+        { img: "https://i.postimg.cc/DwZfLVW5/Story15.png", text: "Anoman tertangkap!, semua Raksasa mengepung dan membakar Anoman!!" },
+        { img: "https://i.postimg.cc/DwZfLVW5/Story15.png", text: "Dengan kesaktian Anoman, menjulang tinggi ke langit dan mengobrak abrik Alengka, ANOMAN OBONG!" },
+        { img: "https://i.postimg.cc/tCC2X5Jz/alengka_fire.png", text: "Alengka Porak poranda lalu datang lah Rama dengan para pengawal untuk perang bersama para Raksasa!!" }
+    ],
+    after5: [
+        { img: "https://i.postimg.cc/BvvJjpcV/SintaFire.png", text: "Setelah perang, Rama meragukan kesucian Sinta dan melakukan Agni Pariksa, membakar diri sendiri, dan ternyata Sinta baik baik saja, membuktikan bahwa Sinta masih Suci" },
+        { img: "https://i.postimg.cc/ZKjKWYq3/Final.png", text: "Setelah membuktikan Kesuciannya, Rama dan Sinta kembali bersatu!" },
+        { img: "https://i.postimg.cc/dVbhdz3p/GoodEnd.png", text: "So sweettt, tapi kasian Rahwana ga sie :(" }
+    ]
+};
 
 // --- Assets Database ---
 const AS = {
@@ -364,7 +390,7 @@ const DB = [
         { q: "Rahwana menyamarkan jadi Brahmana Tua untuk apa?", a: ["Bosen jadi raksasa", "Mencuri hati iba Sinta", "Kebelet tua", "Mengalihkan perhatian Rama"], c: "Mencuri hati iba Sinta", h: "Akting", r: "Rahwana pura-pura membohongi Sinta agar mengikuti dia." },
         { q: "Jatayu adalah putra Dewa...", a: ["Garuda", "Bayu", "Agni", "Brahma"], c: "Bayu", h: "yang namanya Bayu emang OP", r: "Sebagai anak Dewa Bayu, Jatayu mewarisi kecepatan terbang." },
         { q: "Bagian tubuh Jatayu yang dipotong Rahwana adalah...", a: ["Kepala", "Sayap", "Kaki", "Telinga"], c: "Sayap", h: "betul bgt burung kan ga bisa terbang tanpa itu", r: "Sayap Jatayu putus oleh Cakra Rahwana dalam pertarungan brutal." },
-        { q: "Sinta meninggalkan garis proteksi (Laksmana Rekha) karena...", a: ["Mau Donasi ke Pengemis", "Iba melihat brahmana tua", "Laper Mager", "Jalan-jalan"], c: "Iba melihat brahmana tua", hint: "itu yang tadi tuh gegara brahmana", r: "Sinta keluar dari garis karena kasihan melihat brahmana tua kehausan" },
+        { q: "Sinta meninggalkan garis proteksi (Laksmana Rekha) karena...", a: ["Mau Donasi ke Pengemis", "Iba melihat brahmana tua", "Laper Mager", "Jalan-jalan"], c: "Iba melihat brahmana tua", h: "itu yang tadi tuh gegara brahmana", r: "Sinta keluar dari garis karena kasihan melihat brahmana tua kehausan" },
         { q: "Jatayu vs Rahwana, hasil pertandingan...", a: ["Jatayu Menang", "Seri (Draw)", "Rahwana Menang", "Game Over"], c: "Rahwana Menang", h: "minion vs lord", r: "Jatayu gugur sebagai pahlawan yang berkorban." },
         { q: "Kenapa Rahwana sangat sulit dikalahkan?", a: ["Ilmu Patih Geni", "Punya Ilmu Pancasona", "Wahyu Dewa Bayu", "ngbug"], c: "Punya Ilmu Pancasona", h: "Cheat Code abadi 5 mempesona.", r: "Selama menyentuh tanah, dia bisa 'respawn' lagi." },
         { q: "Apa yang dilakukan Rama setelah mendengar cerita Jatayu?", a: ["Mengejar Rahwana", "Menangis", "Meminta pertolongan Raja Kera", "Makan"], c: "Meminta pertolongan Raja Kera", h: "Jatayu memberi infone mas-e, kerajaan alengka", r: "Info dari Jatayu membuat Rama menemui Sugriwa untuk memerintahkan anak buah keranya pergi ke Alengka" },
@@ -382,7 +408,7 @@ const DB = [
         { q: "Wilkataksini terinspirasi dari cahaya dewa...", a: ["Surya & Kartika", "Wisnu & Siwa", "Brahma & Brahma", "Shiva & Shakti"], c: "Wisnu & Siwa", h: "Dia punya buff dari dua Developer (Dewa).", r: "Kesaktian Wilkataksini berasal dari gabungan Wisnu dan Siwa." },
         { q: "Kenapa Anoman akhirnya bisa menang?", a: ["Alurnya gitu kan?", "Kesaktian Anoman!", "Rama membantu", "Punakawan jadi tumbal"], c: "Kesaktian Anoman!", h: "Mechanik Wilkataksini kalah sama DPS Anoman.", r: "Wilkataksini kuat tapi Anoman lebih cepat dan gesit." },
         { q: "Anoman mencari Sinta di...", a: ["Taman Argasoka", "Gua", "Laut Alengka", "Hutan"], c: "Taman Argasoka", h: "Target mark ada di Taman.", r: "Rahwana memperlakukan Sinta dengan baik, ditempatkan di Taman Argasoka, surganya dunia!" },
-        { q: "Wilkataksini kalah karena...", a: ["Kalah Mekanik", "Kepencet", "Anoman lebih Sakti", "Udah tua"], c: "Anoman lebih Sakti", h: "Mekanik Wilkataksini kalah sama DPS Anoman.", r: "Wilkataksini kuat tapi Anoman lebih cepat dan gesit." },
+        { q: "Wilkataksini kalah karena...", a: ["Kalah Mekanik", "Kepencet", "Anoman lebih Sakti", "Udah tua"], c: "Anoman lebih Sakti", h: "Mechanik Wilkataksini kalah sama DPS Anoman.", r: "Wilkataksini kuat tapi Anoman lebih cepat dan gesit." },
         { q: "Apa senjata andalan Wilkataksini?", a: ["Gada Besi", "Trisula", "Cakra", "Panah"], c: "Gada Besi", h: "Senjata jarak dekat dan berat.", r: "Dia menggunakan Gada Besi untuk menghantam Anoman." },
         { q: "Apakah Rahwana tahu Anoman masuk lewat gerbang?", a: ["tidak", "taulah", "ada cctv", "anak buahnya liat"], c: "tidak", h: "Anoman menyelinap masuk yakali ketauan izinn..", r: " Rahwana tidak mengetahui secara langsung saat Anoman pertama kali melewati gerbang Alengka." },
         { q: "Kenapa Anoman membakar taman Alengka?", a: ["Balas Dendam", "Jahil", "Miskin", "Troll"], c: "Balas Dendam", h: "Gara-gara bener gara-gara, karena Rahwana toxic.", r: "Rahwana menghina Anoman sebagai tamu, Anoman balas membakar istan." },
@@ -518,7 +544,9 @@ window.startNewJourney = () => {
     $('menu-screen').style.display='none'; 
     $('story-overlay').style.display='flex'; 
     storyState = 'intro';
+    currentStoryKey = 'intro';
     introDone = false;
+    S.sceneIndex = 0;
     setTimeout(()=>{ 
         $('story-title').style.opacity='1'; 
         $('story-title').style.transform='translateY(0)'; 
@@ -548,16 +576,41 @@ const playStoryIntro = async () => {
 
 // Scene Management
 window.nextStoryScene = () => {
+    const currentScenes = STORY_DATA[currentStoryKey];
     S.sceneIndex++;
-    if (S.sceneIndex >= STORY_SCENES.length) {
-        endStory(); // All scenes done
+    if (S.sceneIndex >= currentScenes.length) {
+        finishStorySequence(); // All scenes done
         return;
     }
     renderStoryScene(S.sceneIndex);
 };
 
+const finishStorySequence = () => {
+    $('story-overlay').style.display='none'; 
+    
+    // FIX: Tampilkan battle screen kembali agar tidak blank
+    $('battle-screen').style.display='flex';
+
+    // Logic after story finishes based on key
+    if (currentStoryKey === 'intro') {
+        window.startGame(true); 
+    } else if (currentStoryKey === 'after1') {
+        // BUG FIX HERE: Change from S.l = 2 to S.l = 1
+        S.l = 1; 
+        loadLevel();
+    } else if (currentStoryKey === 'after4') {
+        // Story after Bab 4 done -> Go to Bab 5 (Index 4)
+        S.l = 4;
+        loadLevel();
+    } else if (currentStoryKey === 'after5') {
+        // Story after Bab 5 done -> Victory
+        endGame('victory');
+    }
+};
+
 const renderStoryScene = (index) => {
-    const data = STORY_SCENES[index];
+    const scenes = STORY_DATA[currentStoryKey];
+    const data = scenes[index];
     
     // Hide Intro Elements
     $('story-title').style.display = 'none';
@@ -590,6 +643,8 @@ const renderStoryScene = (index) => {
         if (i < data.text.length) {
             textContent.innerHTML += data.text.charAt(i);
             i++;
+            // Play typing sound occasionally
+            if(i % 2 === 0) playSFX('sfx-type', 0.1); 
         } else {
             clearInterval(typeInterval);
             isTyping = false;
@@ -598,11 +653,23 @@ const renderStoryScene = (index) => {
     }, speed);
 };
 
-const typeEffect = (el, t) => new Promise(r => { let i=0; const I=setInterval(()=>{ el.innerHTML=t.substring(0,i)+'<span class="cursor"></span>'; i++; if(i>t.length){ clearInterval(I); r(); } }, 35); });
-window.endStory = () => { 
-    $('story-overlay').style.display='none'; 
-    window.startGame(true); 
+// Play story sequence function used after battles
+window.playStorySequence = (key) => {
+    $('battle-screen').style.display='none';
+    $('story-overlay').style.display='flex';
+    currentStoryKey = key;
+    storyState = 'scenes';
+    S.sceneIndex = 0;
+    
+    // Hide Intro elements if showing
+    $('story-title').style.display = 'none';
+    $('story-text').style.display = 'none';
+    $('skip-story-btn').style.display = 'none';
+    
+    renderStoryScene(0);
 };
+
+const typeEffect = (el, t) => new Promise(r => { let i=0; const I=setInterval(()=>{ el.innerHTML=t.substring(0,i)+'<span class="cursor"></span>'; i++; if(i>t.length){ clearInterval(I); r(); } }, 35); });
 
 window.startGame = (n) => {
     fadeAudio('audio-menu', 1000); if(n) { S.l=0; S.hp=S.mx; S.sceneIndex=0; } else if(window.saveData) { S.l=window.saveData.l; S.hp = Number(window.saveData.h) || S.mx; }
@@ -617,19 +684,30 @@ window.loadLevel = () => {
     S.pk = d.p || 'R'; 
     S.ek = d.k || 'H';
     
-    // --- MUSIC LOGIC ---
-    // Stop all first
+    // --- MOBILE ZOOM LOGIC ---
+    // Reset classes
+    document.body.classList.remove('zoom-battle');
+    // Apply zoom class for Bab 3 (Index 2), Bab 4 (Index 3), Bab 5 (Index 4)
+    if(S.l >= 2) {
+        document.body.classList.add('zoom-battle');
+    }
+
+    // --- MUSIC LOGIC (UPDATED FOR BAB 5) ---
     $('audio-battle').pause();
     $('audio-battle').currentTime = 0;
     $('audio-boss').pause();
     $('audio-boss').currentTime = 0;
+    $('audio-final').pause(); // Stop final boss music if active
+    $('audio-final').currentTime = 0;
 
-    // Play appropriate music
-    if(S.l >= 3) {
-        // Bab 4 & 5 (Index 3 & 4) -> Boss Music
+    if(S.l === 4) {
+        // Bab 5 (Final Boss) Specific Music
+        playSFX('audio-final'); 
+    } else if(S.l >= 3) {
+        // Bab 4 (Kumbakarna) Standard Boss Music
         playSFX('audio-boss'); 
     } else {
-        // Bab 1, 2, 3 -> Battle Music
+        // Normal Battle Music
         playSFX('audio-battle');
     }
 
@@ -660,7 +738,6 @@ window.loadLevel = () => {
         $('level-transition').classList.remove('active'); S.qi=0; S.emx=d.mx; S.ehp=S.emx;
         $('enemy-name').innerText=d.n; 
         
-        // --- UPDATE PLAYER NAME DYNAMICALLY ---
         if(AS[S.pk]) {
             $('player-name').innerText = AS[S.pk].n.toUpperCase();
         }
@@ -739,7 +816,28 @@ window.showRationale = () => {
 };
 
 window.nextAction = () => {
-    playSFX('sfx-confirm'); if(S.ehp<=0) { S.l++; if(S.l >= DB.length) endGame('victory'); else loadLevel(); return; }
+    playSFX('sfx-confirm'); 
+    
+    if(S.ehp<=0) { 
+        // Check for Post-Battle Stories
+        if (S.l === 0) { 
+            // After Bab 1 (Jatayu)
+            playStorySequence('after1');
+        } else if (S.l === 3) { 
+            // After Bab 4 (Kumbakarna)
+            playStorySequence('after4');
+        } else if (S.l === 4) { 
+            // After Bab 5 (Rahwana)
+            playStorySequence('after5');
+        } else { 
+            // Standard Level Progression
+            S.l++; 
+            if(S.l >= DB.length) endGame('victory'); 
+            else loadLevel(); 
+        }
+        return; 
+    }
+    
     S.qi++; if(S.qi >= DB[S.l].q.length) S.qi = 0; showQuestion();
 };
 
@@ -767,13 +865,20 @@ window.endGame = (type) => { clearInterval(S.t);
     // Stop music
     $('audio-battle').pause();
     $('audio-boss').pause();
+    $('audio-final').pause(); // Stop final music
     
-    fadeAudio(type==='victory' ? 'audio-boss' : 'audio-battle', 800); 
+    fadeAudio(type==='victory' ? 'audio-final' : (S.l >= 3 ? 'audio-boss' : 'audio-battle'), 800); 
     $(type+'-screen').style.display='flex'; 
     playSFX(type==='victory'?'sfx-jayanti':'sfx-petjah', 1); 
 };
-window.retryLevel = () => { S.hp=S.mx; $('gameover-screen').style.display='none'; playSFX(S.l >= 3 ? 'audio-boss' : 'audio-battle'); loadLevel(); };
-window.backToMenu = (fs) => { playSFX('sfx-back'); clearInterval(S.t); $('victory-screen').style.display='none'; $('gameover-screen').style.display='none'; $('battle-screen').style.display='none'; $('menu-screen').style.display='flex'; $('audio-battle').pause(); $('audio-boss').pause(); playSFX('audio-menu'); if(S.uid) loadCloud(S.uid); };
+window.retryLevel = () => { S.hp=S.mx; $('gameover-screen').style.display='none'; 
+    // Ensure correct music plays on retry
+    if(S.l === 4) playSFX('audio-final');
+    else if(S.l >= 3) playSFX('audio-boss');
+    else playSFX('audio-battle');
+    loadLevel(); 
+};
+window.backToMenu = (fs) => { playSFX('sfx-back'); clearInterval(S.t); $('victory-screen').style.display='none'; $('gameover-screen').style.display='none'; $('battle-screen').style.display='none'; $('menu-screen').style.display='flex'; $('audio-battle').pause(); $('audio-boss').pause(); $('audio-final').pause(); playSFX('audio-menu'); if(S.uid) loadCloud(S.uid); };
 
 window.saveCloud = async () => { if(!S.uid) return; try { await setDoc(doc(db,'artifacts',appId,'users',S.uid,'saveData','progress'), { l:S.l, h:S.hp, t:new Date().toISOString() }, {merge:true}); } catch(e){} };
 
@@ -806,8 +911,10 @@ const preloadAssets = () => {
         urls.push('https://i.postimg.cc/NGd3C08H/Battle.png');
         urls.push('https://i.postimg.cc/7YbpFym8/Menu.png');
         
-        // Add Story Images
-        STORY_SCENES.forEach(s => urls.push(s.img));
+        // Flatten all story images
+        Object.keys(STORY_DATA).forEach(key => {
+            STORY_DATA[key].forEach(s => urls.push(s.img));
+        });
         
         const totalAssets = urls.length;
         urls.forEach(src => {
@@ -847,15 +954,8 @@ const createFire = () => {
 };
 
 // --- Event Listeners ---
-// Click overlay to advance scenes
  $('story-overlay').addEventListener('click', () => {
-    // Logic: 
-    // 1. If Intro still typing -> Finish typing.
-    // 2. If Intro done, not in scenes -> Go to Scene 0.
-    // 3. If Scenes running -> Finish typing OR Next Scene.
-    
     if (isTyping) {
-        // Finish typing immediately
         if(typeInterval) {
             clearInterval(typeInterval);
             typeInterval = null;
@@ -868,7 +968,7 @@ const createFire = () => {
              $('skip-story-btn').style.opacity='1';
              introDone = true;
         } else if (storyState === 'scenes') {
-            const data = STORY_SCENES[S.sceneIndex];
+            const data = STORY_DATA[currentStoryKey][S.sceneIndex];
             document.getElementById('story-scene-text-content').innerHTML = data.text;
         }
         return;
